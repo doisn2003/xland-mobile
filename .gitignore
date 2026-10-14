@@ -1,0 +1,14 @@
+.gitignore
+.dart_tool/
+.flutter-plugins*
+.packages
+build/
+coverage/
+android/local.properties
+android/.gradle/
+*.iml
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+.env.*
