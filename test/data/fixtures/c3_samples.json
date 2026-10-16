@@ -1,0 +1,277 @@
+{
+  "contractRevision": "C-3",
+  "notice": "Synthetic reviewed fixture samples; no live credential",
+  "samples": {
+    "Property": {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "code": "XL-028",
+      "title": "Đất nền Hòa Lạc",
+      "provinceCode": "01",
+      "provinceName": "Hà Nội",
+      "districtCode": "demo-hoa-lac",
+      "districtName": "Khu vực Hòa Lạc",
+      "region": "north",
+      "category": "residential",
+      "priceTotal": "2400000000",
+      "pricePerM2": "20000000",
+      "areaM2": "120",
+      "frontageM": "6",
+      "depthM": "20",
+      "roadWidthM": "5",
+      "direction": "southeast",
+      "landType": "residential",
+      "status": "listed",
+      "approvalStatus": "approved",
+      "sourceBadge": "board_source",
+      "consultantId": "00000000-0000-4000-8000-000000000003",
+      "media": [
+        {
+          "id": "00000000-0000-4000-8000-000000000027",
+          "kind": "video",
+          "url": null,
+          "thumbnailUrl": null,
+          "durationSeconds": 38,
+          "altText": "Minh họa, chờ asset được cấp quyền",
+          "isIllustrative": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000028",
+          "kind": "video",
+          "url": null,
+          "thumbnailUrl": null,
+          "durationSeconds": 38,
+          "altText": "Minh họa, chờ asset được cấp quyền",
+          "isIllustrative": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000029",
+          "kind": "image",
+          "url": null,
+          "thumbnailUrl": null,
+          "durationSeconds": null,
+          "altText": "Minh họa, chờ asset được cấp quyền",
+          "isIllustrative": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000030",
+          "kind": "image",
+          "url": null,
+          "thumbnailUrl": null,
+          "durationSeconds": null,
+          "altText": "Minh họa, chờ asset được cấp quyền",
+          "isIllustrative": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000031",
+          "kind": "image",
+          "url": null,
+          "thumbnailUrl": null,
+          "durationSeconds": null,
+          "altText": "Minh họa, chờ asset được cấp quyền",
+          "isIllustrative": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000032",
+          "kind": "image",
+          "url": null,
+          "thumbnailUrl": null,
+          "durationSeconds": null,
+          "altText": "Minh họa, chờ asset được cấp quyền",
+          "isIllustrative": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000033",
+          "kind": "image",
+          "url": null,
+          "thumbnailUrl": null,
+          "durationSeconds": null,
+          "altText": "Minh họa, chờ asset được cấp quyền",
+          "isIllustrative": true
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000034",
+          "kind": "image",
+          "url": null,
+          "thumbnailUrl": null,
+          "durationSeconds": null,
+          "altText": "Minh họa, chờ asset được cấp quyền",
+          "isIllustrative": true
+        }
+      ],
+      "highlights": [
+        {
+          "title": "Khu dân cư hiện hữu",
+          "description": "An ninh, dân trí tốt"
+        },
+        {
+          "title": "Lối tiếp cận được ghi hình",
+          "description": "Video thực tế, rõ ràng"
+        }
+      ],
+      "verifiedLegalCount": 4,
+      "totalLegalCount": 6,
+      "isSaved": false,
+      "updatedAt": "2026-10-15T02:00:00+07:00",
+      "isIllustrative": true
+    },
+    "LegalSummary": {
+      "propertyId": "00000000-0000-4000-8000-000000000005",
+      "items": [
+        {
+          "id": "00000000-0000-4000-8000-000000000038",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "title": "Giấy chứng nhận",
+          "subtitle": null,
+          "checkedDate": "2026-09-10",
+          "status": "verified",
+          "sortOrder": 1
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000039",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "title": "Người có quyền bán",
+          "subtitle": null,
+          "checkedDate": "2026-09-10",
+          "status": "verified",
+          "sortOrder": 2
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000040",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "title": "Thông tin thửa đất",
+          "subtitle": null,
+          "checkedDate": "2026-09-09",
+          "status": "verified",
+          "sortOrder": 3
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000041",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "title": "Hiện trạng tiếp cận",
+          "subtitle": null,
+          "checkedDate": "2026-09-09",
+          "status": "verified",
+          "sortOrder": 4
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000042",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "title": "Thông tin quy hoạch",
+          "subtitle": null,
+          "checkedDate": null,
+          "status": "pending",
+          "sortOrder": 5
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000043",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "title": "Hạn chế giao dịch",
+          "subtitle": null,
+          "checkedDate": null,
+          "status": "pending",
+          "sortOrder": 6
+        }
+      ],
+      "documents": [
+        {
+          "id": "00000000-0000-4000-8000-000000000044",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "title": "Bản chụp giấy tờ",
+          "mimeType": "application/pdf",
+          "sizeBytes": 2300000,
+          "uploadedDate": "2026-09-10",
+          "previewUrl": null,
+          "access": "granted",
+          "canDownload": false
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000045",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "title": "Ảnh hiện trạng",
+          "mimeType": "image/jpeg",
+          "sizeBytes": 4100000,
+          "uploadedDate": "2026-09-10",
+          "previewUrl": null,
+          "access": "public_redacted",
+          "canDownload": true
+        }
+      ],
+      "verifiedCount": 4,
+      "totalCount": 6,
+      "scopeNotice": "Đã đối chiếu 4/6 mục minh họa; không thay thế thẩm định pháp lý."
+    },
+    "AreaInfo": {
+      "propertyId": "00000000-0000-4000-8000-000000000005",
+      "location": {
+        "latitude": 21,
+        "longitude": 105.5,
+        "radiusM": 2000,
+        "label": "Khu vực Hòa Lạc (minh họa)"
+      },
+      "amenities": [
+        {
+          "id": "00000000-0000-4000-8000-000000000046",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "category": "utility",
+          "name": "Trường học",
+          "distanceText": "1 - 3 km",
+          "iconType": "school",
+          "latitude": null,
+          "longitude": null
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000047",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "category": "utility",
+          "name": "Cơ sở y tế",
+          "distanceText": "2 - 5 km",
+          "iconType": "hospital",
+          "latitude": null,
+          "longitude": null
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000048",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "category": "utility",
+          "name": "Chợ và siêu thị",
+          "distanceText": "1 - 3 km",
+          "iconType": "market",
+          "latitude": null,
+          "longitude": null
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000049",
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "category": "traffic",
+          "name": "Trục giao thông chính",
+          "distanceText": "2 - 4 km",
+          "iconType": "road",
+          "latitude": null,
+          "longitude": null
+        }
+      ],
+      "photos": [],
+      "providerAttribution": "Vị trí minh họa, chưa nối nhà cung cấp bản đồ",
+      "externalMapUrl": null
+    },
+    "Session": {
+      "profile": {
+        "id": "00000000-0000-4000-8000-000000000099",
+        "displayName": "Anh Nam",
+        "avatarUrl": null,
+        "contactPhone": "0900000678",
+        "contactVerified": false,
+        "updatedAt": "2026-10-15T02:00:00+07:00"
+      },
+      "expiresAt": "2026-10-16T02:00:00+07:00"
+    },
+    "UserSettings": {
+      "notificationConsent": false,
+      "locale": "vi_VN",
+      "timeZone": "Asia/Ho_Chi_Minh",
+      "feedAutoplay": false,
+      "feedMutedByDefault": true,
+      "updatedAt": "2026-09-16T14:00:00+07:00"
+    }
+  }
+}
