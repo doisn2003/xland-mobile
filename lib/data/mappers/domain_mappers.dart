@@ -10,12 +10,16 @@ Map<String, Object?> wireObject(Object? value) {
 }
 
 Object? wireField(Map<String, Object?> value, String key) {
-  if (!value.containsKey(key)) throw FormatException('Missing field: $key');
+  if (!value.containsKey(key)) {
+    throw FormatException('Missing field: $key');
+  }
   return value[key];
 }
 
 String wireString(Object? value) {
-  if (value is! String) throw const FormatException('Expected string');
+  if (value is! String) {
+    throw const FormatException('Expected string');
+  }
   return value;
 }
 
@@ -27,7 +31,9 @@ int wireInt(Object? value) {
 }
 
 bool wireBool(Object? value) {
-  if (value is! bool) throw const FormatException('Expected boolean');
+  if (value is! bool) {
+    throw const FormatException('Expected boolean');
+  }
   return value;
 }
 
@@ -49,7 +55,9 @@ Uri wireUri(Object? value) {
 T? wireNullable<T>(Object? value, T Function(Object?) map) =>
     value == null ? null : map(value);
 List<T> wireList<T>(Object? value, T Function(Object?) map) {
-  if (value is! List<Object?>) throw const FormatException('Expected list');
+  if (value is! List<Object?>) {
+    throw const FormatException('Expected list');
+  }
   return List.unmodifiable(value.map(map));
 }
 
@@ -651,7 +659,7 @@ LegalItem mapLegalItem(Object? input) {
     subtitle: ((Object? value) =>
         wireNullable(value, wireString))(wireField(value, 'subtitle')),
     checkedDate: ((Object? value) =>
-        wireNullable(value, wireString))(wireField(value, 'checkedDate')),
+        wireNullable(value, parseDate))(wireField(value, 'checkedDate')),
     status: (mapLegalStatus)(wireField(value, 'status')),
     sortOrder: (wireInt)(wireField(value, 'sortOrder')),
   );
@@ -665,7 +673,7 @@ PropertyDocument mapPropertyDocument(Object? input) {
     title: (wireString)(wireField(value, 'title')),
     mimeType: (wireString)(wireField(value, 'mimeType')),
     sizeBytes: (wireInt)(wireField(value, 'sizeBytes')),
-    uploadedDate: (wireString)(wireField(value, 'uploadedDate')),
+    uploadedDate: (parseDate)(wireField(value, 'uploadedDate')),
     previewUrl: ((Object? value) =>
         wireNullable(value, wireUri))(wireField(value, 'previewUrl')),
     access: (mapDocumentAccess)(wireField(value, 'access')),

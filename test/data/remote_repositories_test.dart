@@ -227,4 +227,79 @@ void main() {
     );
     client.close();
   });
+  test('unknown response enum becomes typed failure with request ID', () async {
+    final property = Map<String, Object?>.from(wireObject(samples['Property']))
+      ..['status'] = 'unexpected_status';
+    final client = MockClient(
+      (_) async => http.Response(
+        jsonEncode({'data': property}),
+        200,
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          'x-request-id': 'mapping-1',
+        },
+      ),
+    );
+    await expectLater(
+      RemotePropertyRepository(
+        RemoteGateway(transport(client, _SessionStore())),
+      ).getProperty('id'),
+      throwsA(
+        failure(FailureCode.internalError)
+            .having((e) => e.requestId, 'request ID', 'mapping-1'),
+      ),
+    );
+    client.close();
+  });
+  test('invalid JSON and malformed login preserve request ID and do not store a token', () async {
+    final store = _SessionStore();
+    final client = MockClient(
+      (_) async =>
+          http.Response('not json', 200, headers: {'x-request-id': 'json-1'}),
+    );
+    await expectLater(
+      RemotePropertyRepository(RemoteGateway(transport(client, store)))
+          .getProperty('id'),
+      throwsA(
+        failure(FailureCode.internalError)
+            .having((e) => e.requestId, 'request ID', 'json-1'),
+      ),
+    );
+    client.close();
+    final loginClient = MockClient(
+      (_) async => http.Response(
+        '{"data":{"accessToken":"invalid","session":{}}}',
+        200,
+        headers: {'x-request-id': 'login-1'},
+      ),
+    );
+    final repo = RemoteAccountRepository(
+      RemoteGateway(transport(loginClient, store)),
+      store,
+    );
+    await expectLater(
+      repo.signIn(
+        const SignInInput(username: 'demo', password: 'valid-password'),
+      ),
+      throwsA(
+        failure(FailureCode.internalError)
+            .having((e) => e.requestId, 'request ID', 'login-1'),
+      ),
+    );
+    expect(store.token, isNull);
+    loginClient.close();
+  });
+  test('failed logout clears local token while reporting server revocation failure', () async {
+    final store = _SessionStore()..token = 'C' * 43;
+    final client = MockClient(
+      (_) async => throw http.ClientException('unavailable'),
+    );
+    final repo = RemoteAccountRepository(
+      RemoteGateway(transport(client, store)),
+      store,
+    );
+    await expectLater(repo.signOut(), throwsA(failure(FailureCode.offline)));
+    expect(store.token, isNull);
+    client.close();
+  });
 }

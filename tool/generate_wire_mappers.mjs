@@ -21,8 +21,9 @@ for(const file of files){
  for(const [,name,body]of source.matchAll(/final class (\w+)[^{]*\{([\s\S]*?)\n\}/g)){
   if(['Page','PageQuery','PropertySearchResult','SignInInput'].includes(name))continue;
   const fields=[...body.matchAll(/final ([\w<>?]+) (\w+);/g)].map(([,type,key])=>({type,key}));
-  output+=`\n${name} map${name}(Object? input) {\n  final value=wireObject(input);\n  return ${name}(\n`+fields.map(({type,key})=>`    ${key}: (${mapper(type)})(wireField(value,'${key}')),`).join('\n')+'\n  );\n}\n';
+  output+=`\n${name} map${name}(Object? input) {\n  final value=wireObject(input);\n  return ${name}(\n`+fields.map(({type,key})=>`    ${key}: (${["checkedDate","uploadedDate"].includes(key)?(type.endsWith("?")?"(Object? value) => wireNullable(value, parseDate)":"parseDate"):mapper(type)})(wireField(value,'${key}')),`).join('\n')+'\n  );\n}\n';
  }
 }
+output=output.replace(/if\s*\(([^\n]*)\)\s+throw ([^;\n]+);/g, 'if ($1) { throw $2; }');
 writeFileSync('lib/data/mappers/domain_mappers.dart',output);
 console.log('Generated domain wire adapters; no domain signature changes.');

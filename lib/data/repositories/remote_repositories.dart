@@ -236,27 +236,18 @@ final class RemoteAccountRepository implements AccountRepository {
 
   @override
   Future<Session> signIn(SignInInput input) async {
-    final data = await gateway.request(
-      'U01',
-      'POST',
-      '/auth/sessions',
-      wireObject,
-      body: {'username': input.username, 'password': input.password},
-    );
-    try {
+    final result = await gateway.request('U01', 'POST', '/auth/sessions', (
+      value,
+    ) {
+      final data = wireObject(value);
       final token = wireString(wireField(data, 'accessToken'));
       if (!RegExp(r'^[A-Za-z0-9_-]{43}$').hasMatch(token)) {
         throw const FormatException('Invalid opaque session');
       }
-      final session = mapSession(wireField(data, 'session'));
-      await sessions.saveAccessToken(accessToken: token);
-      return session;
-    } on FormatException {
-      throw const XlandFailure(
-        code: FailureCode.internalError,
-        message: 'Session không hợp lệ',
-      );
-    }
+      return (token: token, session: mapSession(wireField(data, 'session')));
+    }, body: {'username': input.username, 'password': input.password});
+    await sessions.saveAccessToken(accessToken: result.token);
+    return result.session;
   }
 
   @override
