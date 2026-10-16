@@ -1,5 +1,8 @@
 enum Region { north, central, south }
 
+/// Following scope requires a verified session; recommended is newest first.
+enum FeedScope { recommended, following }
+
 enum PropertyCategory { residential, industrial, agricultural, other }
 
 enum LandType { residential, agricultural, other }
@@ -57,7 +60,7 @@ enum SupportKind {
   locationInquiry,
 }
 
-enum SupportStatus { submitted, assigned, responded, closed }
+enum SupportStatus { received, pending, responded, closed }
 
 enum EventStatus { open, soldOut, closed, cancelled }
 

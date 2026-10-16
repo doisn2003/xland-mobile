@@ -1,4 +1,4 @@
-// DRAFT v0.1; reviewed and locked by Agent A after B feedback.
+// DRAFT v0.1 revision C-3; awaiting Agent A's acceptance and lock.
 import 'common.dart';
 import 'property.dart';
 
@@ -61,8 +61,8 @@ final class Session {
 }
 
 final class SignInInput {
-  const SignInInput({required this.email, required this.password});
-  final String email;
+  const SignInInput({required this.username, required this.password});
+  final String username;
   final String password;
 }
 

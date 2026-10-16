@@ -24,6 +24,7 @@ abstract interface class PropertyRepository {
 abstract interface class FeedRepository {
   Future<Page<FeedVideo>> getFeed(
     PageQuery page, {
+    FeedScope feedScope = FeedScope.recommended,
     Region? region,
     PropertyCategory? category,
   });
