@@ -1,0 +1,85 @@
+{
+  "contractRevision": "C-4-candidate",
+  "samples": {
+    "FinanceResult": {
+      "input": {
+        "propertyId": "00000000-0000-4000-8000-000000000005",
+        "equityVnd": "1200000000",
+        "loanVnd": "1200000000",
+        "termMonths": 240,
+        "annualRatePercent": "9",
+        "method": "equal_installment"
+      },
+      "monthlyPaymentVnd": "10796711",
+      "firstMonthPrincipalVnd": "1796711",
+      "firstMonthInterestVnd": "9000000",
+      "totalInterestVnd": "1391210961",
+      "totalRepaymentVnd": "2591210961",
+      "formulaVersion": "xland-loan-v1",
+      "roundingRule": "VND_HALF_UP_MONTHLY_LAST_ADJUST",
+      "estimateNotice": "Ước tính minh họa; không phải đề nghị cấp tín dụng; chưa gồm phí, thuế, bảo hiểm"
+    },
+    "SavedFinancePlanCalculated": {
+      "id": "00000000-0000-4000-8000-000000000103",
+      "propertyId": "00000000-0000-4000-8000-000000000005",
+      "label": "Phương án minh họa",
+      "input": {
+        "propertyId": "00000000-0000-4000-8000-000000000005",
+        "equityVnd": "1200000000",
+        "loanVnd": "1200000000",
+        "termMonths": 240,
+        "annualRatePercent": "9",
+        "method": "equal_installment"
+      },
+      "result": {
+        "input": {
+          "propertyId": "00000000-0000-4000-8000-000000000005",
+          "equityVnd": "1200000000",
+          "loanVnd": "1200000000",
+          "termMonths": 240,
+          "annualRatePercent": "9",
+          "method": "equal_installment"
+        },
+        "monthlyPaymentVnd": "10796711",
+        "firstMonthPrincipalVnd": "1796711",
+        "firstMonthInterestVnd": "9000000",
+        "totalInterestVnd": "1391210961",
+        "totalRepaymentVnd": "2591210961",
+        "formulaVersion": "xland-loan-v1",
+        "roundingRule": "VND_HALF_UP_MONTHLY_LAST_ADJUST",
+        "estimateNotice": "Ước tính minh họa; không phải đề nghị cấp tín dụng; chưa gồm phí, thuế, bảo hiểm"
+      },
+      "createdAt": "2026-09-16T14:00:00+07:00"
+    },
+    "SavedFinancePlanLegacy": {
+      "id": "00000000-0000-4000-8000-000000000026",
+      "propertyId": "00000000-0000-4000-8000-000000000005",
+      "label": "Phương án minh họa",
+      "input": {
+        "propertyId": "00000000-0000-4000-8000-000000000005",
+        "equityVnd": "1200000000",
+        "loanVnd": "1200000000",
+        "termMonths": 240,
+        "annualRatePercent": "9",
+        "method": "equal_installment"
+      },
+      "result": null,
+      "createdAt": "2026-09-16T14:00:00+07:00"
+    },
+    "UserProfile": {
+      "id": "00000000-0000-4000-8000-000000000099",
+      "displayName": "Anh Nam",
+      "avatarUrl": null,
+      "contactPhone": "0900000678",
+      "contactVerified": false,
+      "updatedAt": "2026-10-15T02:00:00+07:00"
+    },
+    "ProfileUpdate": {
+      "displayName": "Anh Nam",
+      "avatarUrl": null,
+      "contactPhone": null,
+      "clearAvatar": false,
+      "clearContactPhone": false
+    }
+  }
+}

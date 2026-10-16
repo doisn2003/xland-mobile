@@ -19,7 +19,7 @@ function mapper(type){
 for(const file of files){
  const source=readFileSync(entityRoot+file+'.dart','utf8');
  for(const [,name,body]of source.matchAll(/final class (\w+)[^{]*\{([\s\S]*?)\n\}/g)){
-  if(['Page','PageQuery','PropertySearchResult','SignInInput'].includes(name))continue;
+  if(['Page','PageQuery','PropertySearchResult','SignInInput','ProfileUpdate'].includes(name))continue;
   const fields=[...body.matchAll(/final ([\w<>?]+) (\w+);/g)].map(([,type,key])=>({type,key}));
   output+=`\n${name} map${name}(Object? input) {\n  final value=wireObject(input);\n  return ${name}(\n`+fields.map(({type,key})=>`    ${key}: (${["checkedDate","uploadedDate"].includes(key)?(type.endsWith("?")?"(Object? value) => wireNullable(value, parseDate)":"parseDate"):mapper(type)})(wireField(value,'${key}')),`).join('\n')+'\n  );\n}\n';
  }

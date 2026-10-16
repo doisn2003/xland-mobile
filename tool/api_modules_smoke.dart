@@ -87,6 +87,10 @@ Future<void> main() async {
       updated.contactPhone == '+84912345678' && !updated.contactVerified,
       'Profile/contact mapper',
     );
+    final cleared = await account.updateProfile(
+      const ProfileUpdate(clearContactPhone: true),
+    );
+    check(cleared.contactPhone == null, 'C-4 explicit profile clear');
     await account.updateSettings(
       const SettingsUpdate(
         notificationConsent: true,
@@ -286,23 +290,64 @@ Future<void> main() async {
       (await finance.getPlans(const PageQuery())).items.isEmpty,
       'Finance history',
     );
-    await gated(
-      finance.calculate(
-        FinanceInput(
-          propertyId: property.id,
-          equityVnd: property.priceTotal,
-          loanVnd: Vnd('0'),
-          termMonths: 60,
-          annualRatePercent: DecimalValue('0'),
-          method: RepaymentMethod.equalInstallment,
-        ),
+    final zero = await finance.calculate(
+      FinanceInput(
+        propertyId: property.id,
+        equityVnd: property.priceTotal,
+        loanVnd: Vnd('0'),
+        termMonths: 60,
+        annualRatePercent: DecimalValue('0'),
+        method: RepaymentMethod.equalInstallment,
       ),
-      FailureCode.featureNotEnabled,
     );
+    check(zero.totalRepaymentVnd.wireValue == '0', 'A-06 zero-loan mapper');
+    final financeInput = FinanceInput(
+      propertyId: property.id,
+      equityVnd: Vnd('1200000000'),
+      loanVnd: Vnd('1200000000'),
+      termMonths: 240,
+      annualRatePercent: DecimalValue('9'),
+      method: RepaymentMethod.equalInstallment,
+    );
+    final estimate = await finance.calculate(financeInput);
+    check(
+      estimate.monthlyPaymentVnd.wireValue == '10796711' &&
+          estimate.totalRepaymentVnd.wireValue == '2591210961',
+      'A-06 exact result',
+    );
+    final plan = await finance.savePlan(
+      'Dart C-4 finance snapshot',
+      financeInput,
+      idempotencyKey: 'dart-finance-key-00001',
+    );
+    check(
+      plan.result?.formulaVersion == 'xland-loan-v1',
+      'Persisted formula version',
+    );
+    check(
+      (await finance.savePlan(
+            'Dart C-4 finance snapshot',
+            financeInput,
+            idempotencyKey: 'dart-finance-key-00001',
+          )).id ==
+          plan.id,
+      'Finance original retry',
+    );
+    check(
+      (await finance.getPlans(const PageQuery()))
+              .items
+              .single
+              .result
+              ?.totalInterestVnd
+              .wireValue ==
+          '1391210961',
+      'Finance snapshot mapper',
+    );
+    await finance.deletePlan(plan.id);
     await account.signOut();
     check(await sessions.readAccessToken() == null, 'Logout token clear');
     stdout.writeln(
-      'PASS Dart typed repositories → HTTP → isolated PostgreSQL: all10 repositories; create/read/retry/history/social/profile/settings/events/support; policy gates; credentials/tokens redacted. UI/P3 E2E not claimed.',
+      'PASS Dart typed repositories → HTTP → isolated PostgreSQL: all10 repositories; C-4 finance estimate/save/read/retry/delete and profile clear; history/social/settings/events/support; payment gates unchanged; credentials/tokens redacted. UI/P3 E2E not claimed.',
     );
   } finally {
     client.close();

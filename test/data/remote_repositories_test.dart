@@ -302,4 +302,82 @@ void main() {
     expect(store.token, isNull);
     client.close();
   });
+  test(
+    'C-4 clear/keep/set maps only wire null/value and never sends clear flags',
+    () async {
+      final bodies = <Map<String, Object?>>[];
+      final client = MockClient((request) async {
+        bodies.add(wireObject(jsonDecode(request.body)));
+        return http.Response(
+          jsonEncode({'data': wireObject(samples['Session'])['profile']}),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      });
+      final store = _SessionStore();
+      final repo = RemoteAccountRepository(
+        RemoteGateway(transport(client, store)),
+        store,
+      );
+      await repo.updateProfile(
+        const ProfileUpdate(displayName: 'Giữ thông tin'),
+      );
+      await repo.updateProfile(
+        ProfileUpdate(
+          avatarUrl: Uri.parse('https://media.example.test/avatar.png'),
+          contactPhone: '0912345678',
+        ),
+      );
+      await repo.updateProfile(
+        const ProfileUpdate(clearAvatar: true, clearContactPhone: true),
+      );
+      expect(bodies[0], {'displayName': 'Giữ thông tin'});
+      expect(bodies[1], {
+        'avatarUrl': 'https://media.example.test/avatar.png',
+        'contactPhone': '0912345678',
+      });
+      expect(bodies[2], {'avatarUrl': null, 'contactPhone': null});
+      expect(
+        bodies.every(
+          (body) =>
+              !body.containsKey('clearAvatar') &&
+              !body.containsKey('clearContactPhone'),
+        ),
+        isTrue,
+      );
+      client.close();
+    },
+  );
+  test('C-4 clear plus value conflicts fail before HTTP, independent of assertions', () async {
+    var calls = 0;
+    final client = MockClient((_) async {
+      calls++;
+      throw StateError('must not send');
+    });
+    final store = _SessionStore();
+    final repo = RemoteAccountRepository(
+      RemoteGateway(transport(client, store)),
+      store,
+    );
+    await expectLater(
+      repo.updateProfile(
+        ProfileUpdate(
+          clearAvatar: true,
+          avatarUrl: Uri.parse('https://media.example.test/a.png'),
+        ),
+      ),
+      throwsA(failure(FailureCode.invalidInput)),
+    );
+    await expectLater(
+      repo.updateProfile(
+        const ProfileUpdate(
+          clearContactPhone: true,
+          contactPhone: '0912345678',
+        ),
+      ),
+      throwsA(failure(FailureCode.invalidInput)),
+    );
+    expect(calls, 0);
+    client.close();
+  });
 }

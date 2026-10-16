@@ -1,4 +1,4 @@
-// DRAFT v0.1 revision C-3; awaiting Agent A's acceptance and lock.
+// Candidate v0.1 C-4 (A-07); pending B review and Agent A's final hash lock.
 import 'common.dart';
 import 'property.dart';
 
@@ -20,10 +20,18 @@ final class UserProfile {
 }
 
 final class ProfileUpdate {
-  const ProfileUpdate({this.displayName, this.avatarUrl, this.contactPhone});
+  const ProfileUpdate({
+    this.displayName,
+    this.avatarUrl,
+    this.contactPhone,
+    this.clearAvatar = false,
+    this.clearContactPhone = false,
+  });
   final String? displayName;
   final Uri? avatarUrl;
   final String? contactPhone;
+  final bool clearAvatar;
+  final bool clearContactPhone;
 }
 
 final class UserSettings {

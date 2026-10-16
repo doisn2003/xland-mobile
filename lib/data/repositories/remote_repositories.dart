@@ -268,17 +268,33 @@ final class RemoteAccountRepository implements AccountRepository {
   Future<UserProfile> getProfile() =>
       gateway.request('U05', 'GET', '/me/profile', mapUserProfile);
   @override
-  Future<UserProfile> updateProfile(ProfileUpdate input) => gateway.request(
-    'U06',
-    'PATCH',
-    '/me/profile',
-    mapUserProfile,
-    body: {
-      if (input.displayName != null) 'displayName': input.displayName,
-      if (input.avatarUrl != null) 'avatarUrl': input.avatarUrl.toString(),
-      if (input.contactPhone != null) 'contactPhone': input.contactPhone,
-    },
-  );
+  Future<UserProfile> updateProfile(ProfileUpdate input) async {
+    if ((input.clearAvatar && input.avatarUrl != null) ||
+        (input.clearContactPhone && input.contactPhone != null)) {
+      throw const XlandFailure(
+        code: FailureCode.invalidInput,
+        message: 'Không thể vừa xóa vừa đặt cùng một thông tin',
+      );
+    }
+    return gateway.request(
+      'U06',
+      'PATCH',
+      '/me/profile',
+      mapUserProfile,
+      body: {
+        if (input.displayName != null) 'displayName': input.displayName,
+        if (input.clearAvatar)
+          'avatarUrl': null
+        else if (input.avatarUrl != null)
+          'avatarUrl': input.avatarUrl.toString(),
+        if (input.clearContactPhone)
+          'contactPhone': null
+        else if (input.contactPhone != null)
+          'contactPhone': input.contactPhone,
+      },
+    );
+  }
+
   @override
   Future<UserSettings> getSettings() =>
       gateway.request('U07', 'GET', '/me/settings', mapUserSettings);

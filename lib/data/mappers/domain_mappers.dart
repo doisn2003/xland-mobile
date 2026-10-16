@@ -1082,18 +1082,6 @@ UserProfile mapUserProfile(Object? input) {
   );
 }
 
-ProfileUpdate mapProfileUpdate(Object? input) {
-  final value = wireObject(input);
-  return ProfileUpdate(
-    displayName: ((Object? value) =>
-        wireNullable(value, wireString))(wireField(value, 'displayName')),
-    avatarUrl: ((Object? value) =>
-        wireNullable(value, wireUri))(wireField(value, 'avatarUrl')),
-    contactPhone: ((Object? value) =>
-        wireNullable(value, wireString))(wireField(value, 'contactPhone')),
-  );
-}
-
 UserSettings mapUserSettings(Object? input) {
   final value = wireObject(input);
   return UserSettings(
