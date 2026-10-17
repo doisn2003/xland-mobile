@@ -30,6 +30,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Explicit C platform-proof build: separate sandbox/session from users.
+            if (providers.gradleProperty("xlandNativeProof").orNull == "true") {
+                applicationIdSuffix = ".cproof"
+                versionNameSuffix = "-cproof"
+            }
+        }
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
