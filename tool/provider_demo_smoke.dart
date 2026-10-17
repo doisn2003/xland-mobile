@@ -3,12 +3,13 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-import '../lib/data/demo/demo_asset_client.dart';
+import 'package:xland_mobile/data/demo/demo_asset_client.dart';
 
 Future<void> main() async {
   final base = Platform.environment['XLAND_DEMO_BASE_URL'];
-  if (base == null)
+  if (base == null) {
     throw StateError('Start via server verify-demo-provider.mjs');
+  }
   final client = http.Client();
   final demo = DemoAssetClient(client, Uri.parse(base));
   final dir = await Directory.systemTemp.createTemp('xland-synthetic-');
@@ -32,8 +33,9 @@ Future<void> main() async {
       mimeType: 'audio/wav',
       expiresAt: expiry,
     );
-    if (String.fromCharCodes(tone.take(4)) != 'RIFF')
+    if (String.fromCharCodes(tone.take(4)) != 'RIFF') {
       throw StateError('Invalid demo media');
+    }
     var errors = 0;
     for (final path in ['/expired', '/broken', '/missing']) {
       try {
@@ -71,7 +73,7 @@ Future<void> main() async {
       errors++;
     }
     if (errors != 6) throw StateError('Expected six failure scenarios');
-    print(
+    stdout.writeln(
       'PASS synthetic HTTP download/write/read/delete; WAV bytes; 6 errors. Player/native/public provider NOT VERIFIED.',
     );
   } finally {

@@ -7,6 +7,7 @@ import '../data/datasources/local/secure_session_store.dart';
 import '../data/datasources/remote/http_api_transport.dart';
 import '../data/repositories/remote_repositories.dart';
 import '../data/repositories/remaining_repositories.dart';
+import '../data/demo/demo_media_transport.dart';
 import '../presentation/app/xland_app.dart';
 
 void main() {
@@ -38,8 +39,19 @@ class _DevCompositionState extends State<DevComposition> {
       sessions: sessions,
       allowLocalHttp: true,
     );
+    const demoMedia = String.fromEnvironment('XLAND_DEMO_MEDIA_BASE_URL');
+    const demoScenario = String.fromEnvironment(
+      'XLAND_DEMO_MEDIA_SCENARIO',
+      defaultValue: 'normal',
+    );
     final g = RemoteGateway(
-      transport,
+      demoMedia.isEmpty
+          ? transport
+          : DemoMediaTransport(
+              transport,
+              Uri.parse(demoMedia),
+              scenario: demoScenario,
+            ),
       availableOperations: const {
         'F01',
         'F02',
@@ -130,7 +142,9 @@ class _DevCompositionState extends State<DevComposition> {
   Widget build(BuildContext context) => Directionality(
     textDirection: TextDirection.ltr,
     child: Banner(
-      message: 'DEV · API LOCAL',
+      message: const String.fromEnvironment('XLAND_DEMO_MEDIA_BASE_URL').isEmpty
+          ? 'DEV · API LOCAL'
+          : 'DEV · SYNTHETIC MEDIA',
       location: BannerLocation.topEnd,
       child: XLandApp(dependencies: dependencies),
     ),

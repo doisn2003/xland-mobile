@@ -30,8 +30,9 @@ final class DemoAssetClient {
   }) async {
     if (!expiresAt.isAfter(now())) throw StateError('Demo link expired');
     final uri = baseUrl.resolve(path);
-    if (uri.origin != baseUrl.origin)
+    if (uri.origin != baseUrl.origin) {
       throw ArgumentError('Demo origin changed');
+    }
     final request = http.Request('GET', uri)..followRedirects = false;
     final response = await client.send(request).timeout(timeout);
     final result = Completer<Uint8List>();
