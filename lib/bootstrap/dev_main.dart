@@ -7,7 +7,7 @@ import '../data/datasources/local/secure_session_store.dart';
 import '../data/datasources/remote/http_api_transport.dart';
 import '../data/repositories/remote_repositories.dart';
 import '../data/repositories/remaining_repositories.dart';
-import '../data/demo/demo_media_transport.dart';
+import '../data/demo/demo_media_repositories.dart';
 import '../presentation/app/xland_app.dart';
 
 void main() {
@@ -45,13 +45,7 @@ class _DevCompositionState extends State<DevComposition> {
       defaultValue: 'normal',
     );
     final g = RemoteGateway(
-      demoMedia.isEmpty
-          ? transport
-          : DemoMediaTransport(
-              transport,
-              Uri.parse(demoMedia),
-              scenario: demoScenario,
-            ),
+      transport,
       availableOperations: const {
         'F01',
         'F02',
@@ -118,11 +112,21 @@ class _DevCompositionState extends State<DevComposition> {
         'N04',
       },
     );
+    final overlay = demoMedia.isEmpty
+        ? null
+        : DemoMediaOverlay(Uri.parse(demoMedia), scenario: demoScenario);
     dependencies = XlandDependencies(
       properties: RemotePropertyRepository(g),
       account: RemoteAccountRepository(g, sessions),
-      feed: RemoteFeedRepository(g),
-      consultants: RemoteConsultantRepository(g),
+      feed: overlay == null
+          ? RemoteFeedRepository(g)
+          : DemoMediaFeedRepository(RemoteFeedRepository(g), overlay),
+      consultants: overlay == null
+          ? RemoteConsultantRepository(g)
+          : DemoMediaConsultantRepository(
+              RemoteConsultantRepository(g),
+              overlay,
+            ),
       events: RemoteEventRepository(g),
       bookings: RemoteBookingRepository(g),
       payments: RemotePaymentRepository(g),
