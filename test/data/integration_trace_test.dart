@@ -57,6 +57,8 @@ void main() {
         client.records[1]['payloadSha256'],
       );
       expect(client.records[0]['keySha256'], client.records[1]['keySha256']);
+    expect(client.records[0]['keySha256'], matches(RegExp(r'^[a-f0-9]{64}$')));
+    expect(client.records[0]['payloadSha256'], matches(RegExp(r'^[a-f0-9]{64}$')));
       expect(jsonEncode(client.records).contains('synthetic-'), isFalse);
     },
   );

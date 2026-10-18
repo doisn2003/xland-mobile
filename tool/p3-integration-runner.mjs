@@ -20,6 +20,8 @@ if(mode==='owner'){
  const auth=JSON.parse(await readFile('../xland-server/.local/p3-t0-authorization.json','utf8'));
  const review=resolve(auth.reviewPath),allowed=resolve('../brain/logs/agent-a')+sep;
  if(auth.authorized!==true||!review.startsWith(allowed))throw Error('W1 blocked: A/T0 authorization required');
+ const runtime=JSON.parse(await readFile('../xland-server/.local/p3-preview.json','utf8'));
+ if(auth.sourceHash!==c.sourceHash||auth.bundleHash!==c.bundleHash||runtime.sourceHash!==c.sourceHash||runtime.bundleHash!==c.bundleHash||auth.backendSourceHash!==runtime.backendSourceHash)throw Error('T0 snapshot/runtime mismatch: do not run W1 against an old bundle');
  reviewHash=createHash('sha256').update(await readFile(review)).digest('hex');
  if(reviewHash!==auth.reviewSha256)throw Error('T0 review changed: revalidate authorization');
  const input=JSON.parse(await readFile('../xland-server/.local/p3-w1-input.json','utf8'));
