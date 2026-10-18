@@ -3,11 +3,13 @@ import {execFileSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import {resolve} from 'node:path';
 const adb='C:/Users/Admin/AppData/Local/Android/Sdk/platform-tools/adb.exe',serial='emulator-5580',pkg='vn.xland.xland_mobile.cproof';
-const run=JSON.parse(await readFile('../xland-server/.local/closeout02-run.json','utf8'));
+const p3=process.argv.includes('--p3');
+const run=JSON.parse(await readFile(p3?'../xland-server/.local/p3-context.json':'../xland-server/.local/closeout02-run.json','utf8'));
 let artifact=null;try{artifact=JSON.parse(await readFile('.local/native-installed-artifact.json','utf8'));}catch{/* earlier proof artifact is mapped by install order in final manifest */}
 const call=(args,input)=>execFileSync(adb,['-s',serial,...args],{input,windowsHide:true,timeout:30000,maxBuffer:16*1024*1024});
 if(call(['shell','getprop','ro.boot.qemu.avd_name']).toString().trim()!=='Medium_Phone_API_37.0')throw Error('Preserve unrecognized device');
-const [mode,reason]=process.argv.slice(2);
+const [mode,reason]=process.argv.slice(2).filter(a=>a!=='--p3');
+if(p3&&!['capture','feed','player','write','restart_read_delete','unavailable'].includes(mode))throw Error('W0 forbids account/session API scenarios before A/T0');
 if(mode==='capture'){
  await new Promise(r=>setTimeout(r,1800));
  const current=JSON.parse(call(['shell',`run-as ${pkg} cat files/c02-input.json`]).toString());
@@ -18,7 +20,7 @@ if(mode==='capture'){
  console.log(JSON.stringify({event:'native_feed_capture',label,records:records.slice(-3)}));process.exit(0);
 }
 if(!['write','restart_read_delete','login','read_valid','logout','read_401','unavailable','feed','player'].includes(mode))throw Error('Unknown C proof mode');
-const input=JSON.parse(await readFile('../xland-server/.local/native-auth-input.json','utf8'));
+const input=JSON.parse(await readFile(p3?'../xland-server/.local/p3-native-input.json':'../xland-server/.local/native-auth-input.json','utf8'));
 const runKey=randomUUID();const payload={...input,mode,reason:reason??null,runKey};
 call(['shell','am','force-stop',pkg]);
 call(['shell',`run-as ${pkg} sh -c 'mkdir -p files; cat > files/c02-input.json'`],Buffer.from(JSON.stringify(payload)));
