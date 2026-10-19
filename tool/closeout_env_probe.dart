@@ -17,6 +17,9 @@ class _Guest implements SessionStore {
       throw StateError('Guest probe must not create a session');
   @override
   Future<void> clear() async {}
+
+  @override
+  Future<void> clearIfMatches({required String accessToken}) async {}
 }
 
 Future<void> main() async {

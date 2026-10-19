@@ -24,6 +24,10 @@ class _SessionStore implements SessionStore {
   Future<void> clear() async {
     token = null;
   }
+  @override
+  Future<void> clearIfMatches({required String accessToken}) async {
+    if(token==accessToken) token=null;
+  }
 }
 
 void main() {
@@ -140,6 +144,29 @@ void main() {
     expect(revoked, isTrue);
     expect(store.token, isNull);
     client.close();
+  });
+  test('a pending logout cannot erase a later login token',() async {
+    final store=_SessionStore()..token='A'*43;
+    final logoutResponse=Completer<http.Response>();
+    var logins=0;
+    final client=MockClient((req) async {
+      if(req.method=='DELETE') {
+        expect(req.headers['authorization'],'Bearer ${'A'*43}');
+        return logoutResponse.future;
+      }
+      logins++;
+      return http.Response(jsonEncode({'data':{'accessToken':'B'*43,'session':samples['Session']}}),200);
+    });
+    addTearDown(client.close);
+    final repo=RemoteAccountRepository(RemoteGateway(transport(client,store)),store);
+    final logout=repo.signOut();
+    final login=repo.signIn(const SignInInput(username:'owner_b',password:'review_password'));
+    await Future<void>.delayed(Duration.zero);
+    expect(logins,0);
+    logoutResponse.complete(http.Response('{"data":null}',200));
+    await logout;await login;
+    expect(store.token,'B'*43);
+    expect(logins,1);
   });
   test('401 clears local session and getSession becomes null while other calls fail', () async {
     final store = _SessionStore()..token = 'B' * 43;

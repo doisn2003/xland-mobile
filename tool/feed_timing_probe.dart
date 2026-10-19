@@ -13,6 +13,9 @@ class _Guest implements SessionStore {
   Future<String?> readAccessToken() async => null;
   @override
   Future<void> clear() async {}
+
+  @override
+  Future<void> clearIfMatches({required String accessToken}) async {}
   @override
   Future<void> saveAccessToken({required String accessToken}) async =>
       throw StateError('Read-only guest timing probe');

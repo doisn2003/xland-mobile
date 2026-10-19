@@ -17,6 +17,8 @@ class GuestSessions implements SessionStore {
   @override
   Future<void> clear() async {}
   @override
+  Future<void> clearIfMatches({required String accessToken}) async {}
+  @override
   Future<void> saveAccessToken({required String accessToken}) async =>
       throw StateError('W0 must never sign in');
 }
@@ -94,7 +96,9 @@ void main() {
     );
     final area = await properties.getArea(video.propertyId);
     expect(area.propertyId, video.propertyId);
-    expect(area.location.radiusM, greaterThan(0));
+    // Named-area entries do not require legacy property coordinates.
+    final location = area.location;
+    if (location != null) expect(location.radiusM, greaterThan(0));
     expect(area.externalMapUrl, isNull);
     await expectLater(
       properties.getProperty('ffffffff-ffff-4fff-8fff-ffffffffffff'),

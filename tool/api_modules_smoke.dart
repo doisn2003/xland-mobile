@@ -21,6 +21,11 @@ class _TestSession implements SessionStore {
   Future<void> clear() async {
     _token = null;
   }
+
+  @override
+  Future<void> clearIfMatches({required String accessToken}) async {
+    if (_token == accessToken) _token = null;
+  }
 }
 
 void check(bool condition, String message) {

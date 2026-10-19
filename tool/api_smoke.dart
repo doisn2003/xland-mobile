@@ -19,6 +19,11 @@ class _PrivateSession implements SessionStore {
   Future<void> clear() async {
     _token = null;
   }
+
+  @override
+  Future<void> clearIfMatches({required String accessToken}) async {
+    if (_token == accessToken) _token = null;
+  }
 }
 
 Future<void> main() async {
@@ -73,7 +78,7 @@ Future<void> main() async {
     final area = await properties.getArea(property.id);
     if (legal.verifiedCount != 4 ||
         legal.totalCount != 6 ||
-        area.location.radiusM <= 0) {
+        (area.location != null && area.location!.radiusM <= 0)) {
       throw StateError('Domain mapping mismatch');
     }
     await account.signOut();

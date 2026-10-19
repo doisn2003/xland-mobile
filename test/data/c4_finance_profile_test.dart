@@ -18,6 +18,7 @@ class _Sessions implements SessionStore {
   Future<void> saveAccessToken({required String accessToken}) async {}
   @override
   Future<void> clear() async {}
+  @override Future<void> clearIfMatches({required String accessToken}) async {}
 }
 
 void main() {

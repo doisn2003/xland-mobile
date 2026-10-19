@@ -1,8 +1,5 @@
 // Prepared during W0; NEVER run before A/T0. Native private input only, no defines with credentials.
 // These are C repository/transport integration assertions, not B UI acceptance.
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -14,13 +11,16 @@ import 'package:xland_mobile/data/repositories/remaining_repositories.dart';
 import 'package:xland_mobile/domain/xland_domain.dart';
 
 import 'support/trace_client.dart';
+import 'support/private_input.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   const enabled = bool.fromEnvironment('XLAND_P3_AFTER_T0');
   final client = TraceClient(http.Client());
   var ownsSession = false;
-  const sessions = SecureSessionStore(
+  var ready = false;
+  final evidence = <String, Object?>{};
+  final sessions = SecureSessionStore(
     FlutterSecureStorage(
       aOptions: AndroidOptions(storageNamespace: 'xland-p3-w1-canary'),
     ),
@@ -44,11 +44,7 @@ void main() {
       isA<XlandFailure>().having((e) => e.code, 'code', c);
   setUpAll(() async {
     if (!enabled) return;
-    input = jsonDecode(
-      await File(
-        '/data/user/0/vn.xland.xland_mobile.cproof/files/p3-w1-input.json',
-      ).readAsString(),
-    ) as Map<String, Object?>;
+    input = await readW1Input();
     if (input['t0Authorized'] != true ||
         !RegExp(r'^[a-f0-9]{64}$').hasMatch(value('t0ReviewSha256'))) {
       throw StateError('A/T0 authorization and exact review hash required');
@@ -68,6 +64,7 @@ void main() {
     if (await sessions.readAccessToken() != null) {
       throw StateError('Canary namespace already occupied; inspect owner');
     }
+    ready = true;
   });
   tearDownAll(() async {
     if (enabled && ownsSession && await sessions.readAccessToken() != null) {
@@ -76,6 +73,13 @@ void main() {
     IntegrationTestWidgetsFlutterBinding.instance.reportData = {
       'http': client.records,
     };
+    if (ready) {
+      await writeW1Report({
+        'stage': input['stage'],
+        'http': client.records,
+        ...evidence,
+      });
+    }
     client.close();
   });
   testWidgets(
@@ -98,6 +102,9 @@ void main() {
         request,
         idempotencyKey: '${value('runLabel')}-booking',
       );
+      evidence['bookingId'] = first.id;
+      evidence['bookingStatus'] = first.status.name;
+      evidence['paymentStatus'] = first.paymentStatus.name;
       expect(
         (await bookings.create(
           request,
@@ -185,7 +192,12 @@ void main() {
       await account.updateProfile(
         const ProfileUpdate(displayName: 'DEMO C P3'),
       );
-      expect((await account.getProfile()).contactPhone, value('contactPhone'));
+      // C-4 accepts VN local input and returns the server's normalized E.164.
+      final inputPhone = value('contactPhone');
+      final normalizedPhone = inputPhone.startsWith('0')
+          ? '+84${inputPhone.substring(1)}'
+          : inputPhone;
+      expect((await account.getProfile()).contactPhone, normalizedPhone);
       await account.updateProfile(const ProfileUpdate(clearContactPhone: true));
       await account.updateSettings(
         const SettingsUpdate(feedAutoplay: false, feedMutedByDefault: true),
