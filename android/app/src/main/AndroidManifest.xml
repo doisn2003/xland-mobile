@@ -2,9 +2,10 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:allowBackup="false"
-        android:label="xland_mobile"
+        android:label="XLand"
+        android:usesCleartextTraffic="false"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_xland">
         <activity
             android:name=".MainActivity"
             android:exported="true"

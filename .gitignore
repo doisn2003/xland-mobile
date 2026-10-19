@@ -15,3 +15,11 @@ ios/Flutter/flutter_export_environment.sh
 
 # C private SDK/cache/native evidence inputs; never application sources.
 .local/
+
+# Local IDE state, credentials and compiled release artifacts.
+.idea/
+.env
+*.jks
+*.keystore
+*.apk
+android/key.properties

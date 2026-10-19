@@ -1,7 +1,20 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+val releaseKeyFile = rootProject.file("key.properties")
+val releaseKeys = Properties().apply {
+    if (releaseKeyFile.exists()) releaseKeyFile.inputStream().use { load(it) }
+}
+if (gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }) {
+    require(releaseKeyFile.exists()) { "Release signing missing: provision private android/key.properties first." }
+    for (field in listOf("storeFile", "storePassword", "keyAlias", "keyPassword")) {
+        require(!releaseKeys.getProperty(field).isNullOrBlank()) { "Release signing configuration is incomplete." }
+    }
 }
 
 android {
@@ -27,6 +40,23 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Internal pilot targets ARM64 phones and x64 emulators. Override Flutter's
+        // default ABI union so plugin-only ARMv7 libraries cannot advertise support.
+        ndk {
+            abiFilters.clear()
+            abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+        }
+    }
+
+    signingConfigs {
+        if (releaseKeyFile.exists()) {
+            create("internalRelease") {
+                storeFile = file(releaseKeys.getProperty("storeFile"))
+                storePassword = releaseKeys.getProperty("storePassword")
+                keyAlias = releaseKeys.getProperty("keyAlias")
+                keyPassword = releaseKeys.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -38,9 +68,7 @@ android {
             }
         }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("internalRelease")
         }
     }
 }
