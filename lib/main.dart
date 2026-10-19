@@ -1,8 +1,5 @@
-import 'package:flutter/widgets.dart';
-
-import 'bootstrap/bootstrap_app.dart';
+import 'bootstrap/app_main.dart' as application;
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const BootstrapApp());
+  application.main();
 }

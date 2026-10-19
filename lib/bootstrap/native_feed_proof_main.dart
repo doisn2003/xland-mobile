@@ -63,6 +63,7 @@ class _FeedObserverState extends State<_FeedObserver>
             (p) => {
               'initialized': p.value.isInitialized,
               'playing': p.value.isPlaying,
+              'volume': p.value.volume,
               'positionMs': p.value.position.inMilliseconds,
               'width': p.value.size.width,
               'height': p.value.size.height,

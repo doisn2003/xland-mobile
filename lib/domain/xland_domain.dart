@@ -1,4 +1,6 @@
 export 'entities/account.dart';
+export 'auth/extended_auth.dart';
+export 'entities/guest_preferences.dart';
 export 'entities/booking.dart';
 export 'entities/common.dart';
 export 'entities/consultant.dart';

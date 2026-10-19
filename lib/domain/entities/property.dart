@@ -258,7 +258,7 @@ final class AreaInfo {
     this.externalMapUrl,
   });
   final String propertyId;
-  final ApproximateLocation location;
+  final ApproximateLocation? location;
   final List<Amenity> amenities;
   final List<MediaAsset> photos;
   final String providerAttribution;

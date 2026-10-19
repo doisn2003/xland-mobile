@@ -36,7 +36,7 @@ Future<void> main() async {
         ),
       ),
     );
-    const sessions = SecureSessionStore(FlutterSecureStorage());
+    final sessions = SecureSessionStore(const FlutterSecureStorage());
     if (mode == 'write') {
       if (await sessions.readAccessToken() != null) {
         throw StateError('Preserve unexpected private session');
@@ -56,7 +56,7 @@ Future<void> main() async {
       }
       _record({'mode': mode, 'restartRead': true, 'deleteReadNull': true});
     } else if (mode == 'unavailable') {
-      const unavailable = SecureSessionStore(
+      final unavailable = SecureSessionStore(
         FlutterSecureStorage(
           aOptions: AndroidOptions.biometric(
             enforceBiometrics: true,

@@ -1,4 +1,6 @@
 import 'xland_repositories.dart';
+import '../auth/extended_auth.dart';
+import '../entities/guest_preferences.dart';
 
 /// Proposed constructor input for B's XLandApp; A/B confirm in P1 review.
 final class XlandDependencies {
@@ -13,6 +15,8 @@ final class XlandDependencies {
     required this.clubs,
     required this.finance,
     required this.support,
+    this.guestPreferences,
+    this.extendedAuth,
   });
   final PropertyRepository properties;
   final FeedRepository feed;
@@ -24,4 +28,6 @@ final class XlandDependencies {
   final ClubRepository clubs;
   final FinanceRepository finance;
   final SupportRepository support;
+  final GuestPreferencesRepository? guestPreferences;
+  final ExtendedAuthRepository? extendedAuth;
 }

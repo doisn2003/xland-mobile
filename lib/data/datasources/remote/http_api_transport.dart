@@ -43,10 +43,15 @@ final class HttpApiTransport implements ApiTransport {
     if (request.idempotencyKey != null) {
       headers['Idempotency-Key'] = request.idempotencyKey!;
     }
-    final login = request.method == 'POST' && request.path == '/auth/sessions';
+    final login = (request.method == 'POST' && const {
+      '/auth/sessions', '/auth/google/sessions', '/auth/phone/challenges',
+      '/auth/phone/sessions',
+    }.contains(request.path)) ||
+      (request.method == 'GET' && request.path == '/auth/capabilities');
+    String? sentToken;
     if (!login) {
-      final token = await sessions.readAccessToken();
-      if (token != null) headers['Authorization'] = 'Bearer $token';
+      sentToken = await sessions.readAccessToken();
+      if (sentToken != null) headers['Authorization'] = 'Bearer $sentToken';
     }
     String? requestId;
     try {
@@ -86,8 +91,8 @@ final class HttpApiTransport implements ApiTransport {
           'INTERNAL_ERROR': FailureCode.internalError,
         };
         final code = codes[rawCode] ?? FailureCode.internalError;
-        if (code == FailureCode.unauthenticated && !login) {
-          await sessions.clear();
+        if (code == FailureCode.unauthenticated && sentToken != null) {
+          await sessions.clearIfMatches(accessToken:sentToken);
         }
         final details = error['details'];
         final issues = <FieldIssue>[];

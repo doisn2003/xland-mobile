@@ -1,4 +1,5 @@
 import '../../domain/xland_domain.dart';
+import '../auth/auth_operation_coordinator.dart';
 import '../datasources/remote/api_transport.dart';
 import '../datasources/local/session_store.dart';
 import '../mappers/domain_mappers.dart';
@@ -219,10 +220,17 @@ final class RemotePropertyRepository implements PropertyRepository {
   );
 }
 
-final class RemoteAccountRepository implements AccountRepository {
-  const RemoteAccountRepository(this.gateway, this.sessions);
+final class RemoteAccountRepository implements AccountRepository,AccountSessionEvents {
+  RemoteAccountRepository(this.gateway, this.sessions, {AuthOperationCoordinator? authCoordinator})
+    : authCoordinator = authCoordinator ?? AuthOperationCoordinator();
+  final AuthOperationCoordinator authCoordinator;
   final RemoteGateway gateway;
   final SessionStore sessions;
+  @override Stream<void> get sessionInvalidations=>switch(sessions) {
+    SessionInvalidationSource source=>source.sessionInvalidations,
+    _=>const Stream<void>.empty(),
+  };
+  Future<T> _authOperation<T>(Future<T> Function(AuthAttempt) action, {bool cancellable = true}) => authCoordinator.run(action, cancellable: cancellable);
   @override
   Future<Session?> getSession() async {
     if (await sessions.readAccessToken() == null) return null;
@@ -235,7 +243,7 @@ final class RemoteAccountRepository implements AccountRepository {
   }
 
   @override
-  Future<Session> signIn(SignInInput input) async {
+  Future<Session> signIn(SignInInput input) => _authOperation((attempt) async {
     final result = await gateway.request('U01', 'POST', '/auth/sessions', (
       value,
     ) {
@@ -246,12 +254,18 @@ final class RemoteAccountRepository implements AccountRepository {
       }
       return (token: token, session: mapSession(wireField(data, 'session')));
     }, body: {'username': input.username, 'password': input.password});
+    attempt.check();
     await sessions.saveAccessToken(accessToken: result.token);
+    try { attempt.check(); } on XlandFailure {
+      await sessions.clearIfMatches(accessToken: result.token);
+      rethrow;
+    }
     return result.session;
-  }
+  });
 
   @override
-  Future<void> signOut() async {
+  Future<void> signOut() => _authOperation((_) async {
+    final token=await sessions.readAccessToken();
     try {
       await gateway.request(
         'U03',
@@ -260,9 +274,9 @@ final class RemoteAccountRepository implements AccountRepository {
         (_) => null,
       );
     } finally {
-      await sessions.clear();
+      if(token!=null) await sessions.clearIfMatches(accessToken:token);
     }
-  }
+  }, cancellable: false);
 
   @override
   Future<UserProfile> getProfile() =>

@@ -4,16 +4,27 @@ import '../value_objects/vnd.dart';
 import 'property.dart';
 
 final class AgendaItem {
-  const AgendaItem({required this.startsAt, required this.title});
+  const AgendaItem({
+    required this.startsAt,
+    required this.title,
+    this.description,
+  });
   final DateTime startsAt;
   final String title;
+  final String? description;
 }
 
 final class Speaker {
-  const Speaker({required this.name, required this.role, this.avatarUrl});
+  const Speaker({
+    required this.name,
+    required this.role,
+    this.avatarUrl,
+    this.description,
+  });
   final String name;
   final String role;
   final Uri? avatarUrl;
+  final String? description;
 }
 
 final class EventBenefit {

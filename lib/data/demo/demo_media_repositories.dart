@@ -3,7 +3,7 @@ import '../../domain/xland_domain.dart';
 /// Development-only typed projection, applied AFTER the real HTTPS wire mapper.
 /// Never weakens wire URL validation or changes API data, identity or mutations.
 final class DemoMediaOverlay {
-  DemoMediaOverlay(this.baseUrl, {this.scenario = 'normal'}) {
+  DemoMediaOverlay(this.baseUrl, {this.scenario = 'normal',this.reportMode=false}) {
     if (baseUrl.scheme != 'http' ||
         !['localhost', '127.0.0.1', '10.0.2.2'].contains(baseUrl.host) ||
         !['normal', 'expired', 'unavailable'].contains(scenario)) {
@@ -12,6 +12,7 @@ final class DemoMediaOverlay {
   }
   final Uri baseUrl;
   final String scenario;
+  final bool reportMode;
   FeedVideo video(FeedVideo v) {
     if (!v.isIllustrative ||
         !v.media.isIllustrative ||
@@ -19,10 +20,11 @@ final class DemoMediaOverlay {
         v.media.url != null) {
       return v;
     }
+    final reportName=v.id.codeUnits.fold<int>(0,(sum,unit)=>sum+unit)%3==0 ? 'coastal' : 'countryside';
     final path = switch (scenario) {
       'expired' => '/expired',
       'unavailable' => '/broken',
-      _ => '/demo-video.mp4',
+      _ => reportMode ? '/report/$reportName.mp4' : '/demo-video.mp4',
     };
     return FeedVideo(
       id: v.id,
@@ -32,9 +34,9 @@ final class DemoMediaOverlay {
         id: v.media.id,
         kind: v.media.kind,
         url: baseUrl.resolve(path),
-        thumbnailUrl: baseUrl.resolve('/demo-poster.png'),
-        durationSeconds: 4,
-        altText: 'XLAND DEMO ONLY — video tổng hợp, không phải cảnh đất thật',
+        thumbnailUrl: baseUrl.resolve(reportMode ? '/report/$reportName.png' : '/demo-poster.png'),
+        durationSeconds: reportMode ? 8 : 4,
+        altText: 'Video minh họa, không phải cảnh đất thật',
         isIllustrative: true,
       ),
       caption: v.caption,

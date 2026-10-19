@@ -25,7 +25,7 @@ class _NativeProbe extends StatefulWidget {
 class _NativeProbeState extends State<_NativeProbe> {
   static const canary =
       'synthetic-native-storage-canary-closeout-not-a-real-token';
-  final storage = const SecureSessionStore(FlutterSecureStorage());
+  final storage = SecureSessionStore(const FlutterSecureStorage());
   final client = http.Client();
   late final VideoPlayerController player;
   String status = 'Checking actual Android plugins...';

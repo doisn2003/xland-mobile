@@ -725,7 +725,10 @@ AreaInfo mapAreaInfo(Object? input) {
   final value = wireObject(input);
   return AreaInfo(
     propertyId: (wireString)(wireField(value, 'propertyId')),
-    location: (mapApproximateLocation)(wireField(value, 'location')),
+    location: wireNullable(
+      wireField(value, 'location'),
+      mapApproximateLocation,
+    ),
     amenities: ((Object? value) =>
         wireList(value, mapAmenity))(wireField(value, 'amenities')),
     photos: ((Object? value) =>
@@ -829,6 +832,8 @@ AgendaItem mapAgendaItem(Object? input) {
   return AgendaItem(
     startsAt: (parseInstant)(wireField(value, 'startsAt')),
     title: (wireString)(wireField(value, 'title')),
+    // Compatible with the original payload; extra narrative lives in events.agenda JSONB.
+    description: wireNullable(value['description'], wireString),
   );
 }
 
@@ -837,6 +842,7 @@ Speaker mapSpeaker(Object? input) {
   return Speaker(
     name: (wireString)(wireField(value, 'name')),
     role: (wireString)(wireField(value, 'role')),
+    description: wireNullable(value['description'], wireString),
     avatarUrl: ((Object? value) =>
         wireNullable(value, wireUri))(wireField(value, 'avatarUrl')),
   );

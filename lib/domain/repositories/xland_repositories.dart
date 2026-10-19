@@ -7,6 +7,11 @@ import '../entities/finance.dart';
 import '../entities/property.dart';
 import '../entities/social.dart';
 
+/// Optional client lifecycle capability; emits no token or identity material.
+abstract interface class AccountSessionEvents {
+  Stream<void> get sessionInvalidations;
+}
+
 /// All failures throw XlandFailure. Caller never supplies an owner user ID.
 /// Pagination cursor is opaque; idempotency keys survive retry/reopen.
 abstract interface class PropertyRepository {
