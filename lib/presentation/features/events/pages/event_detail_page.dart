@@ -179,7 +179,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (!mounted) return;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    await showModalBottomSheet<void>(
+    await showXLandBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

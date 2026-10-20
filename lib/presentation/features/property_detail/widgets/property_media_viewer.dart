@@ -38,35 +38,38 @@ class _PropertyMediaViewerState extends State<PropertyMediaViewer> {
       foregroundColor: Colors.white,
       title: Text('${_index + 1}/${widget.media.length}'),
     ),
-    body: PageView.builder(
-      controller: _pages,
-      itemCount: widget.media.length,
-      onPageChanged: (index) => setState(() => _index = index),
-      itemBuilder: (_, index) {
-        final item = widget.media[index];
-        return item.kind == MediaKind.video
-            ? _GalleryVideo(
-                key: ValueKey(item.id),
-                media: item,
-                active: _index == index,
-              )
-            : InteractiveViewer(
-                minScale: 1,
-                maxScale: 4,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: XLandMediaImage(
-                      url: item.url,
-                      isIllustrative: item.isIllustrative,
-                      illustrativeAsset: widget.illustrativeAsset,
-                      fit: BoxFit.contain,
-                      showLabel: item.isIllustrative,
+    body: SafeArea(
+      top: false,
+      child: PageView.builder(
+        controller: _pages,
+        itemCount: widget.media.length,
+        onPageChanged: (index) => setState(() => _index = index),
+        itemBuilder: (_, index) {
+          final item = widget.media[index];
+          return item.kind == MediaKind.video
+              ? _GalleryVideo(
+                  key: ValueKey(item.id),
+                  media: item,
+                  active: _index == index,
+                )
+              : InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: XLandMediaImage(
+                        url: item.url,
+                        isIllustrative: item.isIllustrative,
+                        illustrativeAsset: widget.illustrativeAsset,
+                        fit: BoxFit.contain,
+                        showLabel: item.isIllustrative,
+                      ),
                     ),
                   ),
-                ),
-              );
-      },
+                );
+        },
+      ),
     ),
   );
 }

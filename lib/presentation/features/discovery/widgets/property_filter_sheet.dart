@@ -16,7 +16,7 @@ class PropertyFilterSheet extends StatelessWidget {
     BuildContext context, {
     required PropertyRepository propertyRepository,
     required PropertyFilter currentFilter,
-  }) => showModalBottomSheet<PropertyFilter>(
+  }) => showXLandBottomSheet<PropertyFilter>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,

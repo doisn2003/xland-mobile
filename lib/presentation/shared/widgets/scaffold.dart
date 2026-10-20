@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../theme/theme.dart';
 
 /// Base Scaffold wrapper for XLand screens.
@@ -34,7 +35,7 @@ class XLandScaffold extends StatelessWidget {
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       body: SafeArea(
         top: safeAreaTop && appBar == null,
-        bottom: safeAreaBottom && stickyFooter == null && bottomNavigationBar == null,
+        bottom: safeAreaBottom && bottomNavigationBar == null,
         child: Column(
           children: [
             Expanded(child: body),
@@ -42,7 +43,13 @@ class XLandScaffold extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: bottomNavigationBar,
+      bottomNavigationBar: bottomNavigationBar == null
+          ? null
+          : SafeArea(
+              top: false,
+              maintainBottomViewPadding: true,
+              child: bottomNavigationBar!,
+            ),
     );
   }
 }

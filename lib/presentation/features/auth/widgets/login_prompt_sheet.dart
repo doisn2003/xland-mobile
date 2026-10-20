@@ -22,7 +22,7 @@ class LoginPromptSheet extends StatelessWidget {
     String message = 'Bạn đang ở chế độ khách. Vui lòng đăng nhập để lưu và quản lý dữ liệu cá nhân.',
     VoidCallback? onAuthenticated,
   }) async {
-    final wantLogin = await showModalBottomSheet<bool>(
+    final wantLogin = await showXLandBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,

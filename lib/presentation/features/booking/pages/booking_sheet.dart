@@ -33,7 +33,7 @@ class BookingSheet extends StatefulWidget {
     required String propertyId,
     Property? property,
   }) {
-    return showModalBottomSheet<bool>(
+    return showXLandBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

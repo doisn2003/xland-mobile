@@ -649,7 +649,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
   }
 
   Future<void> _showFeedNavigation() async {
-    final index = await showModalBottomSheet<int>(
+    final index = await showXLandBottomSheet<int>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
@@ -1570,7 +1570,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
   }
 
   void _showPolicySheet() {
-    showModalBottomSheet<void>(
+    showXLandBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

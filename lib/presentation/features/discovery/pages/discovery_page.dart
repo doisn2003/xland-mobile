@@ -619,7 +619,7 @@ class _DiscoveryViewState extends State<DiscoveryView> {
       await _openFilterSheet();
       return;
     }
-    final property = await showModalBottomSheet<Property>(
+    final property = await showXLandBottomSheet<Property>(
       context: context,
       showDragHandle: true,
       builder: (context) => SafeArea(

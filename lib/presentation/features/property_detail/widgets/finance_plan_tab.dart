@@ -874,7 +874,7 @@ class FinancePlanTabState extends State<FinancePlanTab> {
     bool isSubmitting = false;
     String? errorMessage;
 
-    showModalBottomSheet<void>(
+    showXLandBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

@@ -1,4 +1,5 @@
 export 'buttons.dart';
+export 'bottom_sheet.dart';
 export 'cards.dart';
 export 'inputs.dart';
 export 'media.dart';

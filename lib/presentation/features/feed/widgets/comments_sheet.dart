@@ -18,7 +18,7 @@ class CommentsSheet extends StatefulWidget {
   final String videoId;
 
   static Future<void> show(BuildContext context, {required String videoId}) {
-    return showModalBottomSheet<void>(
+    return showXLandBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
