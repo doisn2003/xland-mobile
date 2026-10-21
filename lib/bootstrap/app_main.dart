@@ -75,6 +75,8 @@ class _XlandCompositionState extends State<XlandComposition> {
         'F12',
         'F13',
         'F14',
+        'F15',
+        'F16',
         'D01',
         'D02',
         'D03',

@@ -9,7 +9,7 @@ import '../../../shared/di/dependencies_scope.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../../shared/widgets/illustrative_image.dart';
 import '../../../shared/utils/value_formatters.dart';
-import '../../consultant/pages/consultant_profile_page.dart';
+import '../../author/pages/author_profile_page.dart';
 import '../../../theme/theme.dart';
 import '../../auth/cubit/auth_cubit.dart';
 import '../../auth/cubit/auth_state.dart';
@@ -486,13 +486,24 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
     }
   }
 
-  void _openConsultant() => Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => ConsultantProfilePage(
-        consultantId: widget.video.property.consultantId,
+  Future<void> _openAuthor() async {
+    final authorId = widget.video.author.id;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AuthorProfilePage(authorId: authorId),
       ),
-    ),
-  );
+    );
+    if (!mounted || widget.video.author.id != authorId) return;
+    try {
+      final profile = await DependenciesScope.of(context).feed
+          .getAuthorProfile(authorId);
+      if (mounted && widget.video.author.id == authorId) {
+        setState(() => _isFollowing = profile.author.isFollowing);
+      }
+    } catch (_) {
+      // Keep the feed usable when refreshing follow state fails.
+    }
+  }
 
   Widget _avatar(double size) => SizedBox(
     width: size,
@@ -726,7 +737,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                       clipBehavior: Clip.none,
                       children: [
                         GestureDetector(
-                          onTap: _openConsultant,
+                          key: const ValueKey('feed-author-avatar'),
+                          onTap: _openAuthor,
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
@@ -815,7 +827,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: _openConsultant,
+                          key: const ValueKey('feed-author-inline-avatar'),
+                          onTap: _openAuthor,
                           child: _avatar(38),
                         ),
                         const SizedBox(width: 8),
@@ -826,12 +839,15 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                               Row(
                                 children: [
                                   Flexible(
-                                    child: Text(
-                                      v.author.displayName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: AppTypography.bodyStrong.copyWith(
-                                        color: Colors.white,
+                                    child: InkWell(
+                                      key: const ValueKey('feed-author-name'),
+                                      onTap: _openAuthor,
+                                      child: Text(
+                                        v.author.displayName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTypography.bodyStrong
+                                            .copyWith(color: Colors.white),
                                       ),
                                     ),
                                   ),

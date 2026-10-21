@@ -82,6 +82,12 @@ final class DemoMediaFeedRepository implements FeedRepository {
   Future<FeedVideo> getVideo(String videoId) async =>
       overlay.video(await delegate.getVideo(videoId));
   @override
+  Future<AuthorProfile> getAuthorProfile(String authorId) =>
+      delegate.getAuthorProfile(authorId);
+  @override
+  Future<Page<FeedVideo>> getAuthorVideos(String authorId, PageQuery page) async =>
+      overlay.page(await delegate.getAuthorVideos(authorId, page));
+  @override
   Future<Page<FeedVideo>> getSavedVideos(PageQuery page) async =>
       overlay.page(await delegate.getSavedVideos(page));
   @override

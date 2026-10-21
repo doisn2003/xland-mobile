@@ -755,6 +755,31 @@ class FakeFeedRepository implements FeedRepository {
   }
 
   @override
+  Future<AuthorProfile> getAuthorProfile(String authorId) async {
+    final videos = _videos.where((v) => v.author.id == authorId).toList();
+    if (videos.isEmpty) {
+      throw const XlandFailure.notFound(message: 'Không tìm thấy người đăng');
+    }
+    final author = videos.first.author;
+    return AuthorProfile(
+      author: PublicAuthor(
+        id: author.id, displayName: author.displayName, role: author.role,
+        avatarUrl: author.avatarUrl, isVerified: author.isVerified,
+        isFollowing: _followingAuthors.contains(authorId),
+      ),
+      videoCount: videos.length,
+      followerCount: _followingAuthors.contains(authorId) ? 1 : 0,
+      isIllustrative: videos.first.isIllustrative,
+    );
+  }
+
+  @override
+  Future<Page<FeedVideo>> getAuthorVideos(String authorId, PageQuery page) async {
+    final videos = _videos.where((v) => v.author.id == authorId).toList();
+    return Page(items: videos, hasMore: false, total: videos.length);
+  }
+
+  @override
   Future<MutationResult> setLiked(String videoId, bool liked) async {
     if (liked) {
       _likedIds.add(videoId);

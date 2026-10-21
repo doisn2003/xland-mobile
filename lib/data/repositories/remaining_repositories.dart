@@ -26,6 +26,13 @@ final class RemoteFeedRepository implements FeedRepository {
   Future<FeedVideo> getVideo(String videoId) =>
       g.request('F02', 'GET', '/videos/$videoId', mapFeedVideo);
   @override
+  Future<AuthorProfile> getAuthorProfile(String authorId) =>
+      g.request('F15', 'GET', '/authors/$authorId', mapAuthorProfile);
+  @override
+  Future<Page<FeedVideo>> getAuthorVideos(String authorId, PageQuery page) =>
+      g.page('F16', '/authors/$authorId/videos', page, mapFeedVideo);
+
+  @override
   Future<Page<FeedVideo>> getSavedVideos(PageQuery page) =>
       g.page('F10', '/me/saved-videos', page, mapFeedVideo);
   @override

@@ -34,6 +34,8 @@ abstract interface class FeedRepository {
     PropertyCategory? category,
   });
   Future<FeedVideo> getVideo(String videoId);
+  Future<AuthorProfile> getAuthorProfile(String authorId);
+  Future<Page<FeedVideo>> getAuthorVideos(String authorId, PageQuery page);
   Future<Page<FeedVideo>> getSavedVideos(PageQuery page);
   Future<MutationResult> setLiked(String videoId, bool liked);
   Future<MutationResult> setSaved(String videoId, bool saved);

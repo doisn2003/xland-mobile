@@ -753,6 +753,17 @@ PublicAuthor mapPublicAuthor(Object? input) {
   );
 }
 
+AuthorProfile mapAuthorProfile(Object? input) {
+  final value = wireObject(input);
+  return AuthorProfile(
+    author: mapPublicAuthor(value),
+    videoCount: wireInt(wireField(value, 'videoCount')),
+    followerCount: wireInt(wireField(value, 'followerCount')),
+    consultantId: wireNullable(wireField(value, 'consultantId'), wireString),
+    isIllustrative: wireBool(wireField(value, 'isIllustrative')),
+  );
+}
+
 FeedVideo mapFeedVideo(Object? input) {
   final value = wireObject(input);
   return FeedVideo(

@@ -18,6 +18,21 @@ final class PublicAuthor {
   final bool isFollowing;
 }
 
+final class AuthorProfile {
+  const AuthorProfile({
+    required this.author,
+    required this.videoCount,
+    required this.followerCount,
+    this.consultantId,
+    required this.isIllustrative,
+  });
+  final PublicAuthor author;
+  final int videoCount;
+  final int followerCount;
+  final String? consultantId;
+  final bool isIllustrative;
+}
+
 final class FeedVideo {
   const FeedVideo({
     required this.id,
