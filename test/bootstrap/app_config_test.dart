@@ -2,6 +2,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:xland_mobile/bootstrap/app_config.dart';
 
 void main() {
+  test('environment label follows the resolved API, including Railway debug', () {
+    expect(
+      AppConfig.resolve(release: false, android: true).apiEnvironmentLabel,
+      'API LOCAL',
+    );
+    for (final release in [false, true]) {
+      expect(
+        AppConfig.resolve(
+          release: release,
+          android: true,
+          configuredApi: 'https://xland-server-production.up.railway.app/api/v1',
+        ).apiEnvironmentLabel,
+        'API RAILWAY',
+      );
+    }
+    expect(
+      AppConfig.resolve(
+        release: false,
+        android: true,
+        configuredApi: 'https://api.xland.vn/api/v1',
+      ).apiEnvironmentLabel,
+      'API REMOTE',
+    );
+  });
   test(
     'release rejects local defaults, unsafe endpoints and demo overrides',
     () {

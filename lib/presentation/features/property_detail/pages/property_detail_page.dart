@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../domain/xland_domain.dart';
 import '../../../shared/di/dependencies_scope.dart';
+import '../../../shared/sharing/share_sheet.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../../shared/widgets/design_widgets.dart';
 import '../../../shared/widgets/illustrative_image.dart';
@@ -114,24 +114,11 @@ class _PropertyDetailViewState extends State<PropertyDetailView> {
   }
 
   Future<void> _handleShare(BuildContext context, Property property) async {
-    final cubit = context.read<PropertyDetailCubit>();
-    final shareLink = await cubit.getShareLink();
-    if (!context.mounted) return;
-    if (shareLink != null) {
-      await Clipboard.setData(ClipboardData(text: shareLink.url.toString()));
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Đã sao chép liên kết chia sẻ: ${shareLink.url}'),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Liên kết chia sẻ tạm thời còn thiếu, sẽ bổ sung sau.'),
-        ),
-      );
-    }
+    final repository = DependenciesScope.of(context).properties;
+    await ShareSheet.show(context,
+      title: property.title,
+      loadLink: () => repository.getShareLink(property.id),
+    );
   }
 
   @override

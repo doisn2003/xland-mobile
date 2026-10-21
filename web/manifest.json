@@ -1,11 +1,11 @@
 {
-    "name": "xland_mobile",
-    "short_name": "xland_mobile",
+    "name": "Xland",
+    "short_name": "Xland",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F0F3E9",
+    "theme_color": "#087455",
+    "description": "Xland — nền tảng bất động sản thực địa.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

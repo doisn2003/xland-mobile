@@ -1,8 +1,14 @@
 # xland-mobile
 
+Share implementation (21 October 2026): feed/property share sheet, copy link and
+incoming content links. Railway is deployed and Android App Links are verified
+on the emulator. Use the existing **main.dart** configuration and **Pixel 9 Pro**
+in Android Studio, with `--release` and the Railway API. See
+[sharing implementation and acceptance](docs/SHARING.md).
+
 Flutter client for XLand: property videos, discovery, details, administrative-area maps, visit requests and profiles. Google sign-in is configured; SMS OTP and live deposits remain disabled.
 
-**0.2.0+2 — internal Android pilot, 19 October 2026.** Signed APK and API checks passed; native acceptance is awaiting the owner's phone test. See [milestones, signing and release handoff](docs/INTERNAL_RELEASE.md).
+**0.2.3+5 — internal Android release, 21 October 2026.** Includes sharing, Android App Links, updated branding and transaction animation; uses the existing release certificate and Railway API. Public author profiles require backend endpoints that are still missing from the deployed service (404/400). The catalogue remains illustrative. See [release downloads](https://github.com/doisn2003/xland-mobile/releases) and [signing and release handoff](docs/INTERNAL_RELEASE.md).
 
 ## Development
 

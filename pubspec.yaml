@@ -1,7 +1,7 @@
 name: xland_mobile
 description: XLand mobile internal pilot
 publish_to: none
-version: 0.2.0+2
+version: 0.2.3+5
 environment:
   sdk: '>=3.13.4 <4.0.0'
   flutter: '>=3.47.5'
@@ -20,6 +20,21 @@ dependencies:
   flutter_map: 8.3.2
   latlong2: 0.9.1
   url_launcher: 6.3.3
+  # Keep the pinned player in the workspace: Android Studio must not depend on
+  # the external Pub Cache entry that failed to resolve in the IDE build.
+  lottie:
+    path: third_party/lottie
+  share_plus:
+    path: third_party/share_plus
+dependency_overrides:
+  # Pinned unchanged sources keep new sharing dependencies visible to the IDE,
+  # matching the existing workspace-local Lottie setup.
+  share_plus_platform_interface:
+    path: third_party/share_plus_platform_interface
+  cross_file:
+    path: third_party/cross_file
+  mime:
+    path: third_party/mime
 dev_dependencies:
   crypto: 3.0.7
   integration_test:
@@ -30,9 +45,12 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/branding/
     - assets/images/
     - assets/images/report/
     - assets/icons/
+    - assets/animations/xland-nft.json
+    - assets/animations/xland-nft-poster.png
   fonts:
     - family: Roboto
       fonts:

@@ -5,6 +5,13 @@ import 'package:xland_mobile/presentation/shared/widgets/widgets.dart';
 import 'package:xland_mobile/presentation/theme/theme.dart';
 
 void main() {
+  // Keep infinite decorative animation static in non-animation regression tests.
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    binding.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+  });
+  tearDown(binding.platformDispatcher.clearAccessibilityFeaturesTestValue);
   group('Navbar & Main Navigation Shell', () {
     testWidgets('XLandBottomNavBar renders all 4 required tabs in order', (tester) async {
       int selected = 0;
@@ -62,7 +69,7 @@ void main() {
       await tester.tap(find.text('Giao dịch'));
       await tester.pumpAndSettle();
       expect(find.text('Lịch sử đặt lịch thực địa'), findsOneWidget);
-      expect(find.text('Bất động sản phân đoạn NFT'), findsOneWidget);
+      expect(find.text('Tính năng sắp ra mắt'), findsOneWidget);
 
       // Switch to Tab 3: Tôi
       await tester.tap(find.text('Tôi'));

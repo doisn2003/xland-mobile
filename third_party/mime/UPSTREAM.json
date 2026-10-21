@@ -1,0 +1,65 @@
+{
+  "package": "mime",
+  "version": "2.1.0",
+  "archive": "https://pub.dev/api/archives/mime-2.1.0.tar.gz",
+  "archiveSha256": "bd47de35f07e27267e69c8c8b22edf9473bfee170a60d60fcc93730c5144b7f6",
+  "modifications": [],
+  "files": [
+    {
+      "path": "lib/src/default_extension_map.dart",
+      "sha256": "239c877816df24285f911f8151f94b4b620fea79830c79f33282931c4e16d4f4"
+    },
+    {
+      "path": "lib/src/multipart_transformer.dart",
+      "sha256": "c30d5c635724e8a46a6d4813d5c8e3fbb847ac92f2dea8a7b02da5cb1e856454"
+    },
+    {
+      "path": "lib/src/magic_number.dart",
+      "sha256": "484939860ba27138eb8f443f0537a3c38fc285d91e799b1784df81f26ab8cbf0"
+    },
+    {
+      "path": "lib/src/media_types.g.dart",
+      "sha256": "0af70eec95d38fb3a929ddc228210086f0e65393b616813d43833d043dce075c"
+    },
+    {
+      "path": "lib/src/extension.dart",
+      "sha256": "10ecd389e05b7d0547ec34e0ffa15408bbca05484e5204c150a669d449faab8e"
+    },
+    {
+      "path": "lib/src/mime_shared.dart",
+      "sha256": "4789c78847c1e55363d65cf7b4a81af9108efa4331cbf6f03e5270bae46a8b34"
+    },
+    {
+      "path": "lib/src/bound_multipart_stream.dart",
+      "sha256": "159fbff60bd0f21b66d2c55256df8955765e29ba72cee1f7b2a22db63fb3c047"
+    },
+    {
+      "path": "lib/src/mime_type.dart",
+      "sha256": "bc659a980aea5df410012acc7fa6635b6bbd856af6ed377df8c5771c55bdbc0f"
+    },
+    {
+      "path": "lib/src/char_code.dart",
+      "sha256": "8c1a6c4350439be10eb77ca9b836f4d50ed0a8318130c3b010d1543a9b3be477"
+    },
+    {
+      "path": "lib/mime.dart",
+      "sha256": "df569ca9d5b160d8cc48b86c57aa8e3ab543cabe5206320b2eb9c75a4a588a6f"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "c03c4a489f3123a9e9d4c3d00c27a4193ea782059d7c07534f8881c22718c7b0"
+    },
+    {
+      "path": "pubspec.yaml",
+      "sha256": "476ebb13bb41cdb28e6ddf63e3cbfee9214083a50b9f5974dcfda19ca10c92bf"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
+    },
+    {
+      "path": "README.md",
+      "sha256": "5a551a1eaf2b4edf2f492e281f4df74f1ec32c8df2b94e08d7bdeb858d9978f4"
+    }
+  ]
+}

@@ -22,7 +22,12 @@ import 'package:xland_mobile/presentation/features/shell/main_navigation_shell.d
 import 'fakes/fake_xland_dependencies.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    binding.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+  });
+  tearDown(binding.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
   setUpAll(() async {
     const sdk = 'C:/Users/Admin/AppData/Local/XLandTools/flutter';
@@ -102,7 +107,8 @@ void main() {
             final boundary = captureKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
             final rendered = await boundary.toImage(pixelRatio: 1);
             final bytes = await rendered.toByteData(format: ui.ImageByteFormat.png);
-            final directory = Directory('C:/OwnProject/XLAND-PROJECT/brain/logs/agent-b/evidence/screenshots');
+            final directory = Directory(Platform.environment['SCREENSHOT_DIR'] ??
+                'C:/OwnProject/XLAND-PROJECT/brain/logs/agent-b/evidence/screenshots');
             await directory.create(recursive: true);
             await File('${directory.path}/${width.toInt()}-$scale-$name.png').writeAsBytes(bytes!.buffer.asUint8List());
             rendered.dispose();

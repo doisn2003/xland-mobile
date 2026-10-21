@@ -24,6 +24,7 @@ import '../feed/pages/saved_videos_page.dart';
 import '../feed/widgets/video_player_item.dart';
 import '../feed/cubit/video_like_cubit.dart';
 import '../property_detail/pages/property_detail_page.dart';
+import '../transactions/widgets/transaction_nft_hero.dart';
 
 /// Main navigation shell holding the 4 core tabs of XLand:
 /// 0. Trang chủ (Feed video ngắn)
@@ -51,6 +52,10 @@ class _MainNavigationShellState extends State<MainNavigationShell>
   late int _currentIndex;
   bool _isAppActive = true;
   bool _isRouteCovered = false;
+  final _transactionsScrollController = ScrollController();
+  final _bookingHistoryAnchor = GlobalKey();
+  double _transactionHeroExtent = 0;
+  bool _transactionHeroVisible = true;
 
   bool _feedAutoplay = true;
   bool _feedMutedByDefault = false;
@@ -83,6 +88,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     super.initState();
     _currentIndex = widget.initialIndex;
     WidgetsBinding.instance.addObserver(this);
+    _transactionsScrollController.addListener(_onTransactionsScrolled);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialFeed();
       if (_currentIndex == 2) {
@@ -109,6 +115,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     super.didChangeDependencies();
     final modalRoute = ModalRoute.of(context);
     if (modalRoute != null) {
+      _isRouteCovered = !modalRoute.isCurrent;
       XLandApp.routeObserver.subscribe(this, modalRoute);
     }
   }
@@ -125,6 +132,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
 
   @override
   void dispose() {
+    _transactionsScrollController.dispose();
     _clearFeedLikes();
     XLandApp.routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
@@ -385,6 +393,30 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     }
   }
 
+  void _onTransactionsScrolled() {
+    final visible =
+        _transactionsScrollController.offset < _transactionHeroExtent;
+    if (visible != _transactionHeroVisible) {
+      setState(() => _transactionHeroVisible = visible);
+    }
+  }
+
+  void _openBookingHistory() {
+    _onTabTapped(2);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final historyContext = _bookingHistoryAnchor.currentContext;
+      if (historyContext == null) return;
+      Scrollable.ensureVisible(
+        historyContext,
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasDeps =
@@ -427,15 +459,29 @@ class _MainNavigationShellState extends State<MainNavigationShell>
       });
     }
 
+    final isEdgeToEdge = _currentIndex == 0 || _currentIndex == 2;
+    final transactionOverlay =
+        (_transactionHeroVisible
+                ? SystemUiOverlayStyle.light
+                : SystemUiOverlayStyle.dark)
+            .copyWith(
+              statusBarColor: Colors.transparent,
+              systemStatusBarContrastEnforced: false,
+              systemNavigationBarColor: AppColors.surface,
+              systemNavigationBarIconBrightness: Brightness.dark,
+            );
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _currentIndex == 0
           ? SystemUiOverlayStyle.light.copyWith(
               statusBarColor: Colors.transparent,
               systemNavigationBarColor: const Color(0xFF0C1514),
             )
+          : _currentIndex == 2
+          ? transactionOverlay
           : SystemUiOverlayStyle.dark,
       child: XLandScaffold(
-        safeAreaTop: _currentIndex != 0,
+        safeAreaTop: !isEdgeToEdge,
         safeAreaBottom: _currentIndex != 0,
         backgroundColor: _currentIndex == 0 ? const Color(0xFF0C1514) : null,
         body: IndexedStack(
@@ -971,70 +1017,95 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     final deps = DependenciesScope.of(context);
     final authState = context.watch<AuthCubit>().state;
 
-    return Column(
-      children: [
-        const XLandAppBar(
-          variant: XLandAppBarVariant.light,
-          title: 'Giao dịch',
-          subtitle: 'Lịch sử thực địa & Bất động sản NFT',
-        ),
-        Expanded(
-          child: RefreshIndicator(
-            color: AppColors.brandPrimary,
-            onRefresh: () => _loadInitialBookings(silent: true),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.pageGutter),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const InfoNotice(
-                    title: 'Bất động sản phân đoạn NFT',
-                    message: 'Tính năng NFT đang ở giai đoạn nghiên cứu & phát triển (Sắp phát triển). Chưa kích hoạt ví hay giao dịch thương mại.',
-                    variant: NoticeVariant.gold,
-                  ),
-                  const SizedBox(height: AppSpacing.s16),
-                  Text(
-                    'Lịch sử đặt lịch thực địa',
-                    style: AppTypography.sectionTitle,
-                  ),
-                  const SizedBox(height: AppSpacing.s12),
+    return _buildTransactionsLayout(
+      history: authState is! AuthAuthenticated
+          ? _buildBookingHistoryLogin()
+          : _buildBookingHistorySection(deps),
+    );
+  }
 
-                  if (authState is! AuthAuthenticated)
-                    XLandCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.s16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const InfoNotice(
-                              title: 'Tài khoản khách',
-                              message: 'Vui lòng đăng nhập để xem danh sách lịch hẹn khảo sát thực địa của bạn.',
-                              variant: NoticeVariant.info,
-                            ),
-                            const SizedBox(height: AppSpacing.s16),
-                            PrimaryButton(
-                              label: 'Đăng nhập ngay',
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => const LoginPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+  Widget _buildBookingHistoryLogin() {
+    return XLandCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const InfoNotice(
+            title: 'Tài khoản khách',
+            message: 'Vui lòng đăng nhập để xem danh sách lịch hẹn khảo sát thực địa của bạn.',
+            variant: NoticeVariant.info,
+          ),
+          const SizedBox(height: AppSpacing.s16),
+          PrimaryButton(
+            label: 'Đăng nhập ngay',
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute<void>(builder: (_) => const LoginPage())),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionsLayout({required Widget history}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _transactionHeroExtent = constraints.maxHeight;
+        final topInset = MediaQuery.viewPaddingOf(context).top;
+        return RefreshIndicator(
+          color: AppColors.brandPrimary,
+          edgeOffset: topInset,
+          onRefresh: () => _loadInitialBookings(silent: true),
+          child: SingleChildScrollView(
+            key: const PageStorageKey('transactions-scroll'),
+            controller: _transactionsScrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: _transactionHeroExtent,
+                  child: TransactionNftHero(
+                    active:
+                        _currentIndex == 2 &&
+                        _isAppActive &&
+                        !_isRouteCovered &&
+                        _transactionHeroVisible,
+                  ),
+                ),
+                Padding(
+                  key: _bookingHistoryAnchor,
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.pageGutter,
+                    topInset + AppSpacing.pageGutter,
+                    AppSpacing.pageGutter,
+                    AppSpacing.pageGutter,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight:
+                          (constraints.maxHeight -
+                                  topInset -
+                                  AppSpacing.pageGutter * 2)
+                              .clamp(0, double.infinity),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Lịch sử đặt lịch thực địa',
+                          style: AppTypography.sectionTitle,
                         ),
-                      ),
-                    )
-                  else
-                    _buildBookingHistorySection(deps),
-                ],
-              ),
+                        const SizedBox(height: AppSpacing.s12),
+                        history,
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -1209,87 +1280,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
 
   /// Tab 2: Giao dịch Placeholder (for backward compatibility tests)
   Widget _buildTransactionsTabPlaceholder() {
-    return Column(
-      children: [
-        const XLandAppBar(
-          variant: XLandAppBarVariant.light,
-          title: 'Giao dịch',
-          subtitle: 'Lịch sử thực địa & Bất động sản NFT',
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.pageGutter),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const InfoNotice(
-                  title: 'Bất động sản phân đoạn NFT',
-                  message: 'Tính năng NFT đang ở giai đoạn nghiên cứu & phát triển (Sắp phát triển). Chưa kích hoạt ví hay giao dịch thương mại.',
-                  variant: NoticeVariant.gold,
-                ),
-                const SizedBox(height: AppSpacing.s16),
-                Text(
-                  'Lịch sử đặt lịch thực địa',
-                  style: AppTypography.sectionTitle,
-                ),
-                const SizedBox(height: AppSpacing.s8),
-                XLandCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Mã yêu cầu: #XL-BK-8821',
-                            style: AppTypography.compactStrong,
-                          ),
-                          const StatusBadge(
-                            text: 'Chờ xác nhận',
-                            variant: StatusBadgeVariant.pending,
-                          ),
-                        ],
-                      ),
-                      const Divider(height: AppSpacing.s16),
-                      Text(
-                        'Lô đất nền Hòa Lạc XL-028',
-                        style: AppTypography.cardTitle,
-                      ),
-                      const SizedBox(height: AppSpacing.s4),
-                      Text(
-                        'Thời gian: 09:00 — Thứ Tư, 16/10/2026',
-                        style: AppTypography.body,
-                      ),
-                      const SizedBox(height: AppSpacing.s4),
-                      Text(
-                        'Tư vấn viên: Minh Anh (Đầu mối hỗ trợ)',
-                        style: AppTypography.compact,
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      Row(
-                        children: [
-                          const StatusBadge(
-                            text: 'Đã cọc 350.000 đ',
-                            variant: StatusBadgeVariant.verified,
-                          ),
-                          const Spacer(),
-                          OutlineButton(
-                            label: 'Chi tiết lịch',
-                            fullWidth: false,
-                            height: 36,
-                            onPressed: () {},
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+    return _buildTransactionsLayout(history: _buildBookingHistoryLogin());
   }
 
   /// Tab 3: Dynamic Profile tab wired with AuthCubit
@@ -1468,6 +1459,16 @@ class _MainNavigationShellState extends State<MainNavigationShell>
       padding: EdgeInsets.zero,
       child: Column(
         children: [
+          ListTile(
+            leading: const Icon(
+              Icons.event_note_outlined,
+              color: AppColors.brandPrimary,
+            ),
+            title: Text('Lịch sử đặt lịch thực địa', style: AppTypography.body),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: _openBookingHistory,
+          ),
+          const Divider(height: 1),
           ListTile(
             leading: const Icon(
               Icons.bookmark_outline_rounded,

@@ -73,6 +73,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
+  cross_file:
+    dependency: "direct overridden"
+    description:
+      path: "third_party/cross_file"
+      relative: true
+    source: path
+    version: "0.3.5+5"
   crypto:
     dependency: "direct dev"
     description:
@@ -407,6 +414,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+  lottie:
+    dependency: "direct main"
+    description:
+      path: "third_party/lottie"
+      relative: true
+    source: path
+    version: "3.3.3"
   matcher:
     dependency: transitive
     description:
@@ -439,6 +453,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  mime:
+    dependency: "direct overridden"
+    description:
+      path: "third_party/mime"
+      relative: true
+    source: path
+    version: "2.1.0"
   nested:
     dependency: transitive
     description:
@@ -583,6 +604,20 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  share_plus:
+    dependency: "direct main"
+    description:
+      path: "third_party/share_plus"
+      relative: true
+    source: path
+    version: "13.3.1"
+  share_plus_platform_interface:
+    dependency: "direct overridden"
+    description:
+      path: "third_party/share_plus_platform_interface"
+      relative: true
+    source: path
+    version: "7.2.0"
   simple_sparse_list:
     dependency: transitive
     description:

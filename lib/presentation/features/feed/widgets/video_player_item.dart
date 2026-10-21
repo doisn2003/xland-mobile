@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import '../../../../domain/xland_domain.dart';
 import '../../../app/xland_app.dart';
 import '../../../shared/di/dependencies_scope.dart';
+import '../../../shared/sharing/share_sheet.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../../shared/widgets/illustrative_image.dart';
 import '../../../shared/utils/value_formatters.dart';
@@ -85,6 +86,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
         VideoLikeCubit(widget.video, DependenciesScope.of(context).feed);
     final modalRoute = ModalRoute.of(context);
     if (modalRoute != null) {
+      _isRouteCovered = !modalRoute.isCurrent;
       XLandApp.routeObserver.subscribe(this, modalRoute);
       final secAnim = modalRoute.secondaryAnimation;
       if (_secondaryAnimation != secAnim) {
@@ -430,24 +432,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
 
   Future<void> _handleShare() async {
     final deps = DependenciesScope.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final shareLink = await deps.feed.getShareLink(widget.video.id);
-      await Clipboard.setData(ClipboardData(text: shareLink.url.toString()));
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Đã sao chép liên kết video: ${shareLink.url}'),
-          backgroundColor: AppColors.brandPrimary,
-        ),
-      );
-    } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Không thể chia sẻ video: $e'),
-          backgroundColor: AppColors.danger,
-        ),
-      );
-    }
+    await ShareSheet.show(
+      context,
+      title: widget.video.caption,
+      loadLink: () => deps.feed.getShareLink(widget.video.id),
+    );
   }
 
   void _openDetail() {
@@ -667,7 +656,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                           ),
                           const SizedBox(width: 4),
                           Material(
-                            color: Colors.black26,
+                            color: AppColors.mediaPillOverlay,
                             borderRadius: BorderRadius.circular(28),
                             child: InkWell(
                               onTap: widget.onNavigationTap,
@@ -682,7 +671,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                                   children: [
                                     XLandLogo(
                                       variant: XLandLogoVariant.onGreen,
-                                      height: 20,
+                                      height: 22,
                                     ),
                                     SizedBox(width: 4),
                                     Icon(
@@ -807,7 +796,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                   _buildRailButton(
                     icon: Icons.share_rounded,
                     color: Colors.white,
-                    label: 'Chia sẻ',
+                    label: 'Share',
                     semanticLabel: 'Chia sẻ video',
                     onTap: _handleShare,
                   ),

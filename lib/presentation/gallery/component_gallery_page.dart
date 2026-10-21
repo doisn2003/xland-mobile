@@ -132,14 +132,14 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
               runSpacing: AppSpacing.s12,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                const XLandLogo(variant: XLandLogoVariant.onLight, showSlogan: true),
+                const XLandLogo(variant: XLandLogoVariant.onLight),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.s8),
                   decoration: BoxDecoration(
                     color: AppColors.brandPrimary,
                     borderRadius: AppRadius.cardRadius,
                   ),
-                  child: const XLandLogo(variant: XLandLogoVariant.onGreen, showSlogan: true),
+                  child: const XLandLogo(variant: XLandLogoVariant.onGreen),
                 ),
               ],
             ),

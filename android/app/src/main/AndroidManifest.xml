@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:allowBackup="false"
-        android:label="XLand"
+        android:label="Xland"
         android:usesCleartextTraffic="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_xland">
@@ -26,6 +26,25 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="${xlandShareHost}" />
+                <data android:pathPrefix="/properties/" />
+                <data android:pathPrefix="/videos/" />
+                <data android:pathPrefix="/events/" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="xland" android:host="share" />
+                <data android:pathPrefix="/properties/" />
+                <data android:pathPrefix="/videos/" />
+                <data android:pathPrefix="/events/" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

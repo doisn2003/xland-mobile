@@ -30,6 +30,13 @@ import 'fakes/fake_xland_dependencies.dart';
 import 'package:xland_mobile/presentation/theme/theme.dart';
 
 void main() {
+  // Keep infinite decorative animation static in non-animation regression tests.
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    binding.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+  });
+  tearDown(binding.platformDispatcher.clearAccessibilityFeaturesTestValue);
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final captureScreenshots = Platform.environment['CAPTURE_SCREENSHOTS'] == 'true';

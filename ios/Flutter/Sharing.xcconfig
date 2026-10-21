@@ -1,0 +1,2 @@
+// Keep aligned with Dart XLAND_SHARE_HOST and server PUBLIC_BASE_URL.
+XLAND_SHARE_HOST = xland-server-production.up.railway.app

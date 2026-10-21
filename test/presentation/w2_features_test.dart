@@ -40,6 +40,13 @@ Widget _buildTestApp({
 }
 
 void main() {
+  // Keep infinite decorative animation static in non-animation regression tests.
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    binding.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+  });
+  tearDown(binding.platformDispatcher.clearAccessibilityFeaturesTestValue);
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('W2 S05: Finance Plan Loan Advice with Consent', () {

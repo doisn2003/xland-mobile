@@ -1,0 +1,37 @@
+{
+  "package": "share_plus_platform_interface",
+  "version": "7.2.0",
+  "archive": "https://pub.dev/api/archives/share_plus_platform_interface-7.2.0.tar.gz",
+  "archiveSha256": "365ef7379fc22507256adda3385152942ffce08935452bc972c2e52a0bebae41",
+  "modifications": [],
+  "files": [
+    {
+      "path": "lib/method_channel/method_channel_share.dart",
+      "sha256": "1dc5959408b2e31d1aece604f680f76892a77a0fd12b7b228b72e0319b4c332b"
+    },
+    {
+      "path": "lib/platform_interface/share_plus_platform.dart",
+      "sha256": "10d33f2cd9112570b5ad990c157eebd0630a0a7f857341bbbbadb9c35c15f6cf"
+    },
+    {
+      "path": "lib/share_plus_platform_interface.dart",
+      "sha256": "6fbad87e026251fb02386d21c22e8a7fd3efc224ffce63b99f45c3529e385928"
+    },
+    {
+      "path": "pubspec.yaml",
+      "sha256": "e242012251ac4f16af03fbe5a2c53cd4505192ffe64b328a693755bba02ee2ea"
+    },
+    {
+      "path": "README.md",
+      "sha256": "6b6ca53a8092fc13bca3380189a13bedba82a176a85c759d81979ef31a1e67f2"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "31c1e369ae2d5c82ad60841c675ef2f4822a4903346413e48b6e6693658b10b1"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "3b38d48befd0af70b892e13d10c9e34679416c24a9277f962629951c64d71f4c"
+    }
+  ]
+}

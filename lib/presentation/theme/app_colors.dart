@@ -3,6 +3,12 @@ import 'package:flutter/material.dart';
 /// Design tokens for colors based on brain/03_DESIGN_SPEC.md v1.2 and master plan.
 /// All hex values follow the MP (Master Plan) and QU (Quy ước) specifications.
 abstract final class AppColors {
+  // Official Xland identity palette.
+  static const Color brandLogoBackground = Color(0xFFF0F3E9);
+  static const Color brandLeaf = Color(0xFF087455);
+  static const Color brandLeafAccent = Color(0xFF349E72);
+  static const Color brandWordmark = Color(0xFF063E33);
+
   // Master Plan (MP) tokens
   static const Color brandPrimary = Color(0xFF0F4C3A);
   static const Color background = Color(0xFFF7F6F2);

@@ -1,0 +1,53 @@
+{
+  "package": "cross_file",
+  "version": "0.3.5+5",
+  "archive": "https://pub.dev/api/archives/cross_file-0.3.5+5.tar.gz",
+  "archiveSha256": "f141ea4f277af142a0356955707f6556f37b03947d39d55585981a06ca437bd6",
+  "modifications": [],
+  "files": [
+    {
+      "path": "lib/cross_file.dart",
+      "sha256": "0a1cd5b40e3d57c8fab650109af6dbc077cc0531bfe4f4971d100ba0e6f5f7e8"
+    },
+    {
+      "path": "lib/src/types/html.dart",
+      "sha256": "5a2c6329c37306e039f2b84d7569a480e4da40e029a49c5df7bec6429bcf230c"
+    },
+    {
+      "path": "lib/src/types/interface.dart",
+      "sha256": "1b818ae51966a4f1d283d278ed08f639ed8cb4684b259bf7c66f6a697df5ef69"
+    },
+    {
+      "path": "lib/src/types/base.dart",
+      "sha256": "946caf5e02b43f580725c7d269d8dd7a91e15ef20c0b333e04e69298b2d100b5"
+    },
+    {
+      "path": "lib/src/types/io.dart",
+      "sha256": "d428ad84cbfe13c74139d97dd64f89a4fb51f36edb389a4da37bbfe2e4da33e8"
+    },
+    {
+      "path": "lib/src/web_helpers/web_helpers.dart",
+      "sha256": "51dbc29d6b3fd1512aeeaa23aece65762959cf1ec1926a3c5d4ded8ba6267fd4"
+    },
+    {
+      "path": "lib/src/x_file.dart",
+      "sha256": "3a66cfb5e35f0b18ff00f2d85e77c3edc885f372f81ff05213d115feadc91c7a"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "9865a21fa073be638a92f172c97ba544f503c408d623fc7fa6aa6b685c11e9f1"
+    },
+    {
+      "path": "pubspec.yaml",
+      "sha256": "61cc00bcb8abb3172b541ca572c2ace70f65552c7ee1659e67723c6d0022a29b"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "path": "README.md",
+      "sha256": "1fd465459d2d90873500896f61d6cd41113463be73e9c63ec9077e038a5a332f"
+    }
+  ]
+}

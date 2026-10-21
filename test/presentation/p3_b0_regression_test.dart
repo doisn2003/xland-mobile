@@ -24,6 +24,13 @@ class ControllableBookingRepository extends FakeBookingRepository {
 }
 
 void main() {
+  // Keep infinite decorative animation static in non-animation regression tests.
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    binding.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+  });
+  tearDown(binding.platformDispatcher.clearAccessibilityFeaturesTestValue);
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('P3-B0a History & Transaction Transition Risk Regressions', () {
@@ -221,6 +228,7 @@ void main() {
       final loadMoreBtn = find.widgetWithText(OutlineButton, 'Tải thêm lịch hẹn');
       expect(loadMoreBtn, findsOneWidget);
       final countBeforeLoadMore = historyRepo.pending.length;
+      await tester.ensureVisible(loadMoreBtn);
       await tester.tap(loadMoreBtn);
       for (var i = 0; i < 4; i++) {
         await tester.pump(const Duration(milliseconds: 50));

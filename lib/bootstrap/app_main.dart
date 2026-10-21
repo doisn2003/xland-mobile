@@ -35,11 +35,12 @@ class _XlandCompositionState extends State<XlandComposition> {
   final _client = http.Client();
   late final XlandDependencies dependencies;
   late final AreaMapRepository areaMaps;
+  late final AppConfig config;
   @override
   void initState() {
     super.initState();
     const configured = String.fromEnvironment('XLAND_API_BASE_URL');
-    final config = AppConfig.resolve(
+    config = AppConfig.resolve(
       release: kReleaseMode,
       android: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
       configuredApi: configured,
@@ -198,7 +199,7 @@ class _XlandCompositionState extends State<XlandComposition> {
               message:
                   const String.fromEnvironment('XLAND_DEMO_MEDIA_BASE_URL')
                       .isEmpty
-                  ? 'DEV · API LOCAL'
+                  ? 'DEV · ${config.apiEnvironmentLabel}'
                   : 'DEV · SYNTHETIC MEDIA',
               location: BannerLocation.topEnd,
               child: XLandApp(dependencies: dependencies),
