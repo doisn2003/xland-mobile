@@ -180,7 +180,7 @@ class _DiscoveryViewState extends State<DiscoveryView> {
                 icon: Icons.refresh_rounded,
                 semanticLabel: 'Làm mới',
                 foregroundColor: AppColors.onPrimary,
-                onPressed: () => cubit.loadProperties(),
+                onPressed: () => cubit.loadProperties(forceRefresh: true),
               ),
             ],
           ),
