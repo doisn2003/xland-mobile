@@ -38,6 +38,7 @@ class VideoPlayerItem extends StatefulWidget {
     this.onFilterTap,
     this.onNavigationTap,
     this.onRefresh,
+    this.isRefreshing = false,
     this.likeCubit,
   });
 
@@ -51,6 +52,7 @@ class VideoPlayerItem extends StatefulWidget {
   final VoidCallback? onFilterTap;
   final VoidCallback? onNavigationTap;
   final VoidCallback? onRefresh;
+  final bool isRefreshing;
   final VideoLikeCubit? likeCubit;
 
   @override
@@ -706,13 +708,25 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                           const SizedBox(width: 8),
                           if (widget.onRefresh != null)
                             IconButton(
-                              tooltip: 'Tải lại nội dung mới',
-                              onPressed: widget.onRefresh,
+                              tooltip: widget.isRefreshing
+                                  ? 'Đang cập nhật nội dung…'
+                                  : 'Tải lại nội dung mới',
+                              onPressed: widget.isRefreshing
+                                  ? null
+                                  : widget.onRefresh,
                               color: Colors.white,
                               style: IconButton.styleFrom(
                                 backgroundColor: Colors.black38,
                               ),
-                              icon: const Icon(Icons.refresh_rounded, size: 22),
+                              icon: widget.isRefreshing
+                                  ? const SizedBox.square(
+                                      dimension: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.refresh_rounded, size: 22),
                             ),
                           IconButton.filledTonal(
                             onPressed: widget.onFilterTap,

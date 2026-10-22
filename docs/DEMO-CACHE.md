@@ -12,6 +12,8 @@ Mã mobile trên `main` không đổi. Backend đã batch đọc danh sách ở 
   Mở lại app cũng kiểm tra feed/danh sách/sự kiện. Cache nội dung tối đa 36 giờ.
 - Feed có nút **Tải lại nội dung mới**; Khám phá kéo xuống để tải lại.
   Tải lại chủ động chờ lượt đọc mới sau khi lượt tải nền cũ hoàn tất.
+  Trong lúc chờ, feed giữ video hiện tại và hiện tiến trình ở nút tải lại;
+  nếu server lỗi, nội dung đang xem vẫn còn và app báo lỗi cập nhật.
 - Admin thêm lô/video không cần build lại APK. Nội dung/media mới lấy từ
   API/Storage thật; video mới chưa đóng gói vẫn cần mạng lần phát đầu.
 - Phiên/đăng nhập, tài khoản, bình luận, lịch trống, chính sách đặt cọc, lịch sử,
@@ -56,6 +58,8 @@ kiện có sẵn. 10 ca cache kiểm: nhận nội dung mới, manual reload, re
 không enqueue, phản hồi cũ không ghi đè thao tác mới, private/session luôn live,
 tách tài khoản và dữ liệu sau restart. Snapshot qua 605 lượt mapper thật;
 376 endpoint công khai, 34 media và 108 tile đã kiểm byte/file tồn tại.
+Sau chỉnh giao diện tải lại, 16 ca cache/feed đạt, gồm 2 ca mới kiểm video
+không biến mất khi server đang trả lời hoặc trả lỗi.
 
 Fixture login UI dùng expiry theo đồng hồ test cộng một giờ, thay ngày cố định
 đã hết hạn 22/10; kiểm tra đăng nhập/expiry của ứng dụng thật giữ nguyên.

@@ -67,6 +67,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
   List<FeedVideo> _feedVideos = [];
   final Map<String, VideoLikeCubit> _feedLikes = {};
   bool _isLoadingFeed = false;
+  bool _isRefreshingFeed = false;
   String? _feedError;
   String? _feedCursor;
   bool _hasMoreFeed = false;
@@ -234,16 +235,37 @@ class _MainNavigationShellState extends State<MainNavigationShell>
       });
     } on XlandFailure catch (e) {
       if (!mounted || currentEpoch != _feedEpoch) return;
-      setState(() {
-        _feedError = e.message;
-        _isLoadingFeed = false;
-      });
+      _feedLoadFailed(e.message, silent: silent);
     } catch (e) {
       if (!mounted || currentEpoch != _feedEpoch) return;
-      setState(() {
-        _feedError = 'Không thể tải feed video: $e';
-        _isLoadingFeed = false;
-      });
+      _feedLoadFailed('Không thể tải feed video: $e', silent: silent);
+    }
+  }
+
+  void _feedLoadFailed(String message, {required bool silent}) {
+    final keepContent = silent && _feedVideos.isNotEmpty;
+    setState(() {
+      _feedError = keepContent ? null : message;
+      _isLoadingFeed = false;
+    });
+    if (keepContent) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Chưa cập nhật được. $message')));
+    }
+  }
+
+  Future<void> _refreshFeed() async {
+    if (_isRefreshingFeed) return;
+    setState(() => _isRefreshingFeed = true);
+    try {
+      await _loadInitialFeed(
+        forceRefresh: true,
+        silent: true,
+        refreshSettings: false,
+      );
+    } finally {
+      if (mounted) setState(() => _isRefreshingFeed = false);
     }
   }
 
@@ -589,7 +611,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
                       ),
                     )
                   : PageView.builder(
-                      key: ValueKey(_feedScope),
+                      key: ObjectKey(_feedVideos),
                       scrollDirection: Axis.vertical,
                       itemCount: _feedVideos.length,
                       onPageChanged: (index) {
@@ -619,11 +641,9 @@ class _MainNavigationShellState extends State<MainNavigationShell>
                           onRefresh:
                               DependenciesScope.of(context).refreshContent !=
                                   null
-                              ? () => _loadInitialFeed(
-                                  forceRefresh: true,
-                                  refreshSettings: false,
-                                )
+                              ? _refreshFeed
                               : null,
+                          isRefreshing: _isRefreshingFeed,
                           isCurrent:
                               _currentIndex == 0 &&
                               _activeFeedIndex == index &&

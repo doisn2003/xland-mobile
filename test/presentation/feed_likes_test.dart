@@ -16,6 +16,7 @@ class ControlledFeed extends FakeFeedRepository {
   final pending = <Completer<MutationResult>>[];
   final requested = <bool>[];
   bool initialLiked = false;
+  String idPrefix = 'video';
 
   @override
   Future<Page<FeedVideo>> getFeed(
@@ -29,7 +30,7 @@ class ControlledFeed extends FakeFeedRepository {
       items: List.generate(
         6,
         (i) => FeedVideo(
-          id: 'video-$i',
+          id: '$idPrefix-$i',
           propertyId: source.propertyId,
           author: source.author,
           media: source.media,
@@ -58,7 +59,11 @@ class ControlledFeed extends FakeFeedRepository {
   }
 }
 
-Future<AuthCubit> mountFeed(WidgetTester t, ControlledFeed feed) async {
+Future<AuthCubit> mountFeed(
+  WidgetTester t,
+  ControlledFeed feed, {
+  Future<void> Function(String)? refreshContent,
+}) async {
   t.view.physicalSize = const Size(390, 850);
   t.view.devicePixelRatio = 1;
   addTearDown(t.view.resetPhysicalSize);
@@ -71,6 +76,7 @@ Future<AuthCubit> mountFeed(WidgetTester t, ControlledFeed feed) async {
   await auth.checkSession();
   addTearDown(auth.close);
   final deps = XlandDependencies(
+    refreshContent: refreshContent,
     properties: d.properties,
     feed: feed,
     consultants: d.consultants,
@@ -112,6 +118,73 @@ Future<void> jump(WidgetTester t, int index) async {
 }
 
 void main() {
+  testWidgets('refresh keeps the player visible until real data arrives', (
+    t,
+  ) async {
+    final feed = ControlledFeed();
+    final response = Completer<void>();
+    var calls = 0;
+    await mountFeed(
+      t,
+      feed,
+      refreshContent: (path) {
+        expect(path, '/feed');
+        calls++;
+        return response.future;
+      },
+    );
+    await jump(t, 4);
+    final player = t.state(find.byType(VideoPlayerItem).first);
+    await t.tap(find.byTooltip('Tải lại nội dung mới').first);
+    await t.pump();
+    expect(player.mounted, isTrue);
+    expect(find.byTooltip('Đang cập nhật nội dung…'), findsWidgets);
+    expect(calls, 1);
+    feed.initialLiked = true;
+    feed.idPrefix = 'new-video';
+    response.complete();
+    await t.pumpAndSettle();
+    expect(find.text('101'), findsOneWidget);
+    expect(
+      t
+          .widgetList<VideoPlayerItem>(find.byType(VideoPlayerItem))
+          .singleWhere((item) => item.isCurrent)
+          .video
+          .id,
+      'new-video-0',
+    );
+    expect(find.byTooltip('Tải lại nội dung mới'), findsWidgets);
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('failed refresh retains the video and reports the failure', (
+    t,
+  ) async {
+    final response = Completer<void>();
+    await mountFeed(
+      t,
+      ControlledFeed(),
+      refreshContent: (_) => response.future,
+    );
+    final player = t.state(find.byType(VideoPlayerItem).first);
+    await t.tap(find.byTooltip('Tải lại nội dung mới').first);
+    await t.pump();
+    response.completeError(
+      const XlandFailure(
+        code: FailureCode.upstreamUnavailable,
+        message: 'Máy chủ chưa phản hồi',
+      ),
+    );
+    await t.pumpAndSettle();
+    expect(player.mounted, isTrue);
+    expect(
+      find.text('Chưa cập nhật được. Máy chủ chưa phản hồi'),
+      findsOneWidget,
+    );
+    expect(find.byTooltip('Tải lại nội dung mới'), findsWidgets);
+    await t.pumpWidget(const SizedBox());
+  });
+
   testWidgets(
     'successful response while player is disposed is visible on return',
     (t) async {
