@@ -1,6 +1,7 @@
 param(
   [string]$ApkPath = 'build/app/outputs/flutter-apk/app-release.apk',
-  [string]$EvidencePath = '../brain/logs/agent-a/A21_PHASE4_2026-10-19/apk-content.json'
+  [string]$EvidencePath = '.local/northflank-apk-content.json',
+  [string]$ApiBaseUrl = 'https://p01--xland--y56gnzgzjsqm.code.run/api/v1'
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -20,7 +21,7 @@ try {
     $memory = [System.IO.MemoryStream]::new()
     try { $stream.CopyTo($memory); $binaryText = [System.Text.Encoding]::ASCII.GetString($memory.ToArray()) }
     finally { $stream.Dispose(); $memory.Dispose() }
-    if (-not $binaryText.Contains('https://xland-server-production.up.railway.app/api/v1')) { throw 'Expected API origin absent from AOT' }
+    if (-not $binaryText.Contains($ApiBaseUrl)) { throw 'Expected API origin absent from AOT' }
   }
   [ordered]@{ checkedAt=(Get-Date).ToUniversalTime().ToString('o'); abis=$abis; nativeLibraries=$native; privateFileEntries=0; configuredApiFoundInBothAbis=$true; sha256=(Get-FileHash $ApkPath -Algorithm SHA256).Hash.ToLowerInvariant() } |
     ConvertTo-Json | Tee-Object -FilePath $EvidencePath

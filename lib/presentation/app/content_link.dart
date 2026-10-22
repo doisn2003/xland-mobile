@@ -8,7 +8,7 @@ final class ContentLink {
 
   static const host = String.fromEnvironment(
     'XLAND_SHARE_HOST',
-    defaultValue: 'xland-server-production.up.railway.app',
+    defaultValue: 'p01--xland--y56gnzgzjsqm.code.run',
   );
   static final _uuid = RegExp(
     r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',

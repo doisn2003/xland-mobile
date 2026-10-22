@@ -1,4 +1,4 @@
-param([string]$ApiBaseUrl = 'https://xland-server-production.up.railway.app/api/v1')
+param([string]$ApiBaseUrl = 'https://p01--xland--y56gnzgzjsqm.code.run/api/v1')
 $ErrorActionPreference = 'Stop'
 $mobileRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 Push-Location $mobileRoot

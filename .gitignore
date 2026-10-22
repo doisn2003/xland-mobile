@@ -6,6 +6,7 @@ build/
 coverage/
 android/local.properties
 android/.gradle/
+android/.kotlin/
 *.iml
 ios/Pods/
 ios/.symlinks/

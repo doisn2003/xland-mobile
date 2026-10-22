@@ -8,6 +8,7 @@ final class AppConfig {
   String get apiEnvironmentLabel {
     if (_localHosts.contains(apiBaseUrl.host)) return 'API LOCAL';
     if (apiBaseUrl.host.endsWith('.up.railway.app')) return 'API RAILWAY';
+    if (apiBaseUrl.host.endsWith('.code.run')) return 'API NORTHFLANK';
     return 'API REMOTE';
   }
 
