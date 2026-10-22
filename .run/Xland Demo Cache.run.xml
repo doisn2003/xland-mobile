@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Xland Demo Cache" type="FlutterRunConfigurationType" factoryName="Flutter">
+    <option name="additionalArgs" value="--release --dart-define=XLAND_PREPARED_DEMO=true --dart-define=XLAND_API_BASE_URL=https://p01--xland--y56gnzgzjsqm.code.run/api/v1 --dart-define-from-file=.local/auth/google-client.json" />
+    <option name="filePath" value="$PROJECT_DIR$/lib/main_demo.dart" />
+    <method v="2" />
+  </configuration>
+</component>

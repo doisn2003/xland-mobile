@@ -1,5 +1,9 @@
 # xland-mobile
 
+**Branch demo 23/10:** `demo/offline-2026-10-23`, cấu hình **Xland Demo Cache**.
+Nội dung/media lưu sẵn, nhận cập nhật mới từ admin; thao tác ghi dùng backend
+thật. Xem [hướng dẫn demo](docs/DEMO-CACHE.md).
+
 **Backend hiện tại — 22/10/2026:** Northflank, API
 `https://p01--xland--y56gnzgzjsqm.code.run/api/v1`.
 Trong Android Studio, chọn **Xland Northflank**, thiết bị **Pixel 9 Pro**, rồi Run.

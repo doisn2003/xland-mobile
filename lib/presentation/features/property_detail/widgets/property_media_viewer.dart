@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../data/demo/prepared_media.dart';
+
 import '../../../../domain/xland_domain.dart';
 import '../../../shared/widgets/illustrative_image.dart';
 import '../../../theme/theme.dart';
@@ -99,7 +101,10 @@ class _GalleryVideoState extends State<_GalleryVideo>
       setState(() => _failed = true);
       return;
     }
-    final video = VideoPlayerController.networkUrl(url);
+    final preparedAsset = PreparedMedia.asset(url);
+    final video = preparedAsset == null
+        ? VideoPlayerController.networkUrl(url)
+        : VideoPlayerController.asset(preparedAsset);
     _video = video;
     try {
       await video.initialize();

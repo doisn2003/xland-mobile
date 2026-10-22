@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xland_mobile/domain/xland_domain.dart';
+
 import 'property_detail_state.dart';
 
 class PropertyDetailCubit extends Cubit<PropertyDetailState> {
@@ -7,41 +10,76 @@ class PropertyDetailCubit extends Cubit<PropertyDetailState> {
     this._propertyRepository,
     this._consultantRepository, {
     required this.propertyId,
-  }) : super(PropertyDetailState(propertyId: propertyId));
+    Stream<Set<String>>? contentChanges,
+  }) : super(PropertyDetailState(propertyId: propertyId)) {
+    _contentSubscription = contentChanges?.listen((paths) {
+      if (!isClosed &&
+          paths.any(
+            (p) =>
+                p == '/properties/$propertyId' ||
+                p.startsWith('/properties/$propertyId/'),
+          )) {
+        loadPropertyDetail(silent: true);
+      }
+    });
+  }
 
   final String propertyId;
   final PropertyRepository _propertyRepository;
   final ConsultantRepository _consultantRepository;
+  StreamSubscription<Set<String>>? _contentSubscription;
+  int _loadGeneration = 0;
 
-  Future<void> loadPropertyDetail() async {
-    emit(state.copyWith(isLoading: true, clearError: true));
+  Future<void> loadPropertyDetail({bool silent = false}) async {
+    final generation = ++_loadGeneration;
+    emit(state.copyWith(isLoading: !silent, clearError: true));
     try {
-      final property = await _propertyRepository.getProperty(propertyId);
-      final legalSummary = await _propertyRepository.getLegal(propertyId);
-      final areaInfo = await _propertyRepository.getArea(
-        propertyId,
-        category: state.selectedAmenityCategory,
-      );
+      final results = await Future.wait<Object>([
+        _propertyRepository.getProperty(propertyId),
+        _propertyRepository.getLegal(propertyId),
+        _propertyRepository.getArea(
+          propertyId,
+          category: state.selectedAmenityCategory,
+        ),
+      ]);
+      final property = results[0] as Property;
+      final legalSummary = results[1] as LegalSummary;
+      final areaInfo = results[2] as AreaInfo;
 
       Consultant? consultant;
       try {
-        consultant = await _consultantRepository.getConsultant(property.consultantId);
+        consultant = await _consultantRepository.getConsultant(
+          property.consultantId,
+        );
       } catch (_) {
         consultant = null;
       }
 
-      emit(state.copyWith(
-        isLoading: false,
-        property: property,
-        legalSummary: legalSummary,
-        areaInfo: areaInfo,
-        consultant: consultant,
-      ));
+      if (isClosed || generation != _loadGeneration) return;
+      emit(
+        state.copyWith(
+          isLoading: false,
+          property: property,
+          legalSummary: legalSummary,
+          areaInfo: areaInfo,
+          consultant: consultant,
+        ),
+      );
     } on XlandFailure catch (e) {
+      if (isClosed || generation != _loadGeneration) return;
       emit(state.copyWith(isLoading: false, errorMessage: e.message));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: 'Lỗi tải dữ liệu: $e'));
+      if (isClosed || generation != _loadGeneration) return;
+      emit(
+        state.copyWith(isLoading: false, errorMessage: 'Lỗi tải dữ liệu: $e'),
+      );
     }
+  }
+
+  @override
+  Future<void> close() {
+    _contentSubscription?.cancel();
+    return super.close();
   }
 
   void selectTab(int index) {
@@ -58,9 +96,17 @@ class PropertyDetailCubit extends Cubit<PropertyDetailState> {
 
   Future<void> filterAmenities(AmenityCategory? category) async {
     final gen = ++_amenityGeneration;
-    emit(state.copyWith(selectedAmenityCategory: category, clearAmenityCategory: category == null));
+    emit(
+      state.copyWith(
+        selectedAmenityCategory: category,
+        clearAmenityCategory: category == null,
+      ),
+    );
     try {
-      final updatedArea = await _propertyRepository.getArea(propertyId, category: category);
+      final updatedArea = await _propertyRepository.getArea(
+        propertyId,
+        category: category,
+      );
       if (isClosed || gen != _amenityGeneration) return;
       if (state.selectedAmenityCategory != category) return;
       emit(state.copyWith(areaInfo: updatedArea));
@@ -76,7 +122,10 @@ class PropertyDetailCubit extends Cubit<PropertyDetailState> {
   Future<void> downloadDocument(String documentId) async {
     emit(state.copyWith(clearDownload: true));
     try {
-      final grant = await _propertyRepository.requestDownload(propertyId, documentId);
+      final grant = await _propertyRepository.requestDownload(
+        propertyId,
+        documentId,
+      );
       emit(state.copyWith(downloadGrant: grant));
     } on XlandFailure catch (e) {
       emit(state.copyWith(downloadError: e.message));

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../data/demo/prepared_media.dart';
+
 import '../../../../domain/xland_domain.dart';
 import '../../../app/xland_app.dart';
 import '../../../shared/di/dependencies_scope.dart';
@@ -35,6 +37,7 @@ class VideoPlayerItem extends StatefulWidget {
     this.onScopeChanged,
     this.onFilterTap,
     this.onNavigationTap,
+    this.onRefresh,
     this.likeCubit,
   });
 
@@ -47,6 +50,7 @@ class VideoPlayerItem extends StatefulWidget {
   final ValueChanged<FeedScope>? onScopeChanged;
   final VoidCallback? onFilterTap;
   final VoidCallback? onNavigationTap;
+  final VoidCallback? onRefresh;
   final VideoLikeCubit? likeCubit;
 
   @override
@@ -174,7 +178,10 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
     _controller = null;
 
     try {
-      final controller = VideoPlayerController.networkUrl(mediaUrl);
+      final preparedAsset = PreparedMedia.asset(mediaUrl);
+      final controller = preparedAsset == null
+          ? VideoPlayerController.networkUrl(mediaUrl)
+          : VideoPlayerController.asset(preparedAsset);
       _controller = controller;
       controller.addListener(_onPlayerStateChanged);
 
@@ -697,6 +704,16 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                             ),
                           ),
                           const SizedBox(width: 8),
+                          if (widget.onRefresh != null)
+                            IconButton(
+                              tooltip: 'Tải lại nội dung mới',
+                              onPressed: widget.onRefresh,
+                              color: Colors.white,
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black38,
+                              ),
+                              icon: const Icon(Icons.refresh_rounded, size: 22),
+                            ),
                           IconButton.filledTonal(
                             onPressed: widget.onFilterTap,
                             tooltip: 'Tìm đất theo nhu cầu',

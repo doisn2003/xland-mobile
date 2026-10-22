@@ -6,35 +6,50 @@ import 'package:xland_mobile/domain/xland_domain.dart';
 import 'discovery_state.dart';
 
 class DiscoveryCubit extends Cubit<DiscoveryState> {
-  DiscoveryCubit(this._propertyRepository)
-    : super(
-        DiscoveryState(
-          currentFilter: const PropertyFilter(
-            regions: [],
-            areaBands: [],
-            landTypes: [],
-            savedOnly: false,
-            sort: PropertySort.relevant,
-          ),
-        ),
-      );
+  DiscoveryCubit(
+    this._propertyRepository, {
+    Stream<Set<String>>? contentChanges,
+    this.refreshContent,
+  }) : super(
+         DiscoveryState(
+           currentFilter: const PropertyFilter(
+             regions: [],
+             areaBands: [],
+             landTypes: [],
+             savedOnly: false,
+             sort: PropertySort.relevant,
+           ),
+         ),
+       ) {
+    _contentSubscription = contentChanges?.listen((paths) {
+      if (!isClosed && paths.contains('/properties')) {
+        loadProperties(silent: true);
+      }
+    });
+  }
 
   final PropertyRepository _propertyRepository;
+  final Future<void> Function(String)? refreshContent;
+  StreamSubscription<Set<String>>? _contentSubscription;
   int _searchGeneration = 0;
   Timer? _searchDebounceTimer;
 
   @override
   Future<void> close() {
+    _contentSubscription?.cancel();
     _searchDebounceTimer?.cancel();
     return super.close();
   }
 
-  Future<void> loadProperties() async {
+  Future<void> loadProperties({
+    bool forceRefresh = false,
+    bool silent = false,
+  }) async {
     _searchDebounceTimer?.cancel();
     final gen = ++_searchGeneration;
     emit(
       state.copyWith(
-        isLoading: true,
+        isLoading: !silent,
         clearError: true,
         isLoadingMore: false,
         clearLoadMoreError: true,
@@ -43,6 +58,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
       ),
     );
     try {
+      if (forceRefresh) await refreshContent?.call('/properties');
       final result = await _propertyRepository.search(
         state.currentFilter,
         const PageQuery(limit: 20),

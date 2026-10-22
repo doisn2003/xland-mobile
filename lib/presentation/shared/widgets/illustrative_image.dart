@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/demo/prepared_media.dart';
+
 import '../../theme/theme.dart';
 
 abstract final class IllustrativeAssets {
@@ -32,7 +34,15 @@ class XLandMediaImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final useIllustration = url == null && isIllustrative;
-    final image = url != null
+    final preparedAsset = url == null ? null : PreparedMedia.asset(url!);
+    final image = preparedAsset != null
+        ? Image.asset(
+            preparedAsset,
+            fit: fit,
+            alignment: alignment,
+            errorBuilder: (_, _, _) => _fallback(),
+          )
+        : url != null
         ? Image.network(
             url.toString(),
             fit: fit,

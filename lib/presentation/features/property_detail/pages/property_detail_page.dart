@@ -44,6 +44,7 @@ class PropertyDetailPage extends StatelessWidget {
               deps.properties,
               deps.consultants,
               propertyId: propertyId,
+              contentChanges: deps.contentChanges,
             )
             ..selectTab(initialTab.clamp(0, 3))
             ..loadPropertyDetail(),
@@ -115,7 +116,8 @@ class _PropertyDetailViewState extends State<PropertyDetailView> {
 
   Future<void> _handleShare(BuildContext context, Property property) async {
     final repository = DependenciesScope.of(context).properties;
-    await ShareSheet.show(context,
+    await ShareSheet.show(
+      context,
       title: property.title,
       loadLink: () => repository.getShareLink(property.id),
     );

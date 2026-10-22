@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.util.Base64
 
 plugins {
     id("com.android.application")
@@ -7,6 +8,10 @@ plugins {
 }
 
 val releaseKeyFile = rootProject.file("key.properties")
+val isPreparedDemo = providers.gradleProperty("dart-defines").orNull.orEmpty()
+    .split(",").filter { it.isNotBlank() }.any {
+        String(Base64.getDecoder().decode(it)) == "XLAND_PREPARED_DEMO=true"
+    }
 val releaseKeys = Properties().apply {
     if (releaseKeyFile.exists()) releaseKeyFile.inputStream().use { load(it) }
 }
@@ -30,6 +35,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "vn.xland.xland_mobile"
+        manifestPlaceholders["xlandAppName"] = if (isPreparedDemo) "Xland Demo" else "Xland"
         manifestPlaceholders["xlandShareHost"] = providers.gradleProperty("xlandShareHost")
             .getOrElse("p01--xland--y56gnzgzjsqm.code.run")
         // You can update the following values to match your application needs.

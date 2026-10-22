@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../domain/xland_domain.dart';
 import '../../../shared/di/dependencies_scope.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../../shared/widgets/prepared_content_controls.dart';
 import '../../../theme/theme.dart';
 import '../../auth/cubit/auth_cubit.dart';
 import '../../auth/cubit/auth_state.dart';
@@ -48,11 +50,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
     AuthState? authState;
     try {
-      final auth=context.read<AuthCubit>();
-      if(auth.state is AuthInitial) await auth.checkSession();
+      final auth = context.read<AuthCubit>();
+      if (auth.state is AuthInitial) await auth.checkSession();
       authState = auth.state;
     } catch (_) {}
-    if(!mounted || currentEpoch!=_settingsRequestEpoch) return;
+    if (!mounted || currentEpoch != _settingsRequestEpoch) return;
     final isGuest = authState is! AuthAuthenticated;
 
     final deps = DependenciesScope.maybeOf(context);
@@ -61,7 +63,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (isGuest) {
       try {
-        final guestData = await deps?.guestPreferences?.read() ?? const GuestPlaybackPreferences();
+        final guestData =
+            await deps?.guestPreferences?.read() ??
+            const GuestPlaybackPreferences();
         if (!mounted || currentEpoch != _settingsRequestEpoch) return;
         setState(() {
           _applyGuest(guestData);
@@ -71,7 +75,8 @@ class _SettingsPageState extends State<SettingsPage> {
       } catch (_) {
         if (!mounted || currentEpoch != _settingsRequestEpoch) return;
         setState(() {
-          _errorMessage = 'Không thể đọc cài đặt trên thiết bị. Vui lòng thử lại.';
+          _errorMessage =
+              'Không thể đọc cài đặt trên thiết bị. Vui lòng thử lại.';
           _isLoading = false;
         });
       }
@@ -123,7 +128,9 @@ class _SettingsPageState extends State<SettingsPage> {
     final isGuest = authState is! AuthAuthenticated;
 
     setState(() {
-      if (notificationConsent != null) _notificationConsent = notificationConsent;
+      if (notificationConsent != null) {
+        _notificationConsent = notificationConsent;
+      }
       if (feedAutoplay != null) _feedAutoplay = feedAutoplay;
       if (feedMutedByDefault != null) _feedMutedByDefault = feedMutedByDefault;
     });
@@ -133,10 +140,12 @@ class _SettingsPageState extends State<SettingsPage> {
       final repository = deps?.guestPreferences;
       if (repository == null) return;
       try {
-        final saved = await repository.update(GuestPreferenceUpdate(
-          feedAutoplay: feedAutoplay,
-          feedMutedByDefault: feedMutedByDefault,
-        ));
+        final saved = await repository.update(
+          GuestPreferenceUpdate(
+            feedAutoplay: feedAutoplay,
+            feedMutedByDefault: feedMutedByDefault,
+          ),
+        );
         if (!mounted || currentEpoch != _settingsRequestEpoch) return;
         setState(() => _applyGuest(saved));
         ScaffoldMessenger.of(context).showSnackBar(
@@ -147,16 +156,27 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       } catch (_) {
         GuestPlaybackPreferences? confirmed;
-        try { confirmed = await repository.read(); } catch (_) { /* use last confirmed state */ }
+        try {
+          confirmed = await repository.read();
+        } catch (_) {
+          /* use last confirmed state */
+        }
         if (!mounted || currentEpoch != _settingsRequestEpoch) return;
-        setState(() => _applyGuest(confirmed ?? GuestPlaybackPreferences(
-          feedAutoplay: _settings?.feedAutoplay ?? true,
-          feedMutedByDefault: _settings?.feedMutedByDefault ?? false,
-        )));
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Chưa lưu được cài đặt. Vui lòng thử lại.'),
-          backgroundColor: AppColors.danger,
-        ));
+        setState(
+          () => _applyGuest(
+            confirmed ??
+                GuestPlaybackPreferences(
+                  feedAutoplay: _settings?.feedAutoplay ?? true,
+                  feedMutedByDefault: _settings?.feedMutedByDefault ?? false,
+                ),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chưa lưu được cài đặt. Vui lòng thử lại.'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
       }
       return;
     }
@@ -186,7 +206,10 @@ class _SettingsPageState extends State<SettingsPage> {
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể cập nhật cài đặt: $e'), backgroundColor: AppColors.danger),
+        SnackBar(
+          content: Text('Không thể cập nhật cài đặt: $e'),
+          backgroundColor: AppColors.danger,
+        ),
       );
     }
   }
@@ -195,13 +218,22 @@ class _SettingsPageState extends State<SettingsPage> {
     _notificationConsent = false;
     _feedAutoplay = value.feedAutoplay;
     _feedMutedByDefault = value.feedMutedByDefault;
-    _settings = UserSettings(notificationConsent: false, locale: 'vi_VN',
-      timeZone: 'Asia/Ho_Chi_Minh', feedAutoplay: value.feedAutoplay,
-      feedMutedByDefault: value.feedMutedByDefault, updatedAt: DateTime.now());
+    _settings = UserSettings(
+      notificationConsent: false,
+      locale: 'vi_VN',
+      timeZone: 'Asia/Ho_Chi_Minh',
+      feedAutoplay: value.feedAutoplay,
+      feedMutedByDefault: value.feedMutedByDefault,
+      updatedAt: DateTime.now(),
+    );
   }
 
   Future<void> _loginForNotifications() async {
-    if (await LoginPromptSheet.show(context, title: 'Đăng nhập để nhận thông báo') && mounted) {
+    if (await LoginPromptSheet.show(
+          context,
+          title: 'Đăng nhập để nhận thông báo',
+        ) &&
+        mounted) {
       await _loadSettings();
     }
   }
@@ -214,115 +246,188 @@ class _SettingsPageState extends State<SettingsPage> {
         variant: XLandAppBarVariant.light,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.brandPrimary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.brandPrimary),
+            )
           : _errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.pageGutter),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.pageGutter),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      color: AppColors.danger,
+                      size: 48,
+                    ),
+                    const SizedBox(height: AppSpacing.s12),
+                    Text(
+                      _errorMessage!,
+                      style: AppTypography.body,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.s16),
+                    PrimaryButton(label: 'Thử lại', onPressed: _loadSettings),
+                  ],
+                ),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.pageGutter),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const PreparedContentControls(),
+                  Text(
+                    'Thông báo & Tương tác',
+                    style: AppTypography.sectionTitle,
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  XLandCard(
+                    padding: EdgeInsets.zero,
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 48),
-                        const SizedBox(height: AppSpacing.s12),
-                        Text(_errorMessage!, style: AppTypography.body, textAlign: TextAlign.center),
-                        const SizedBox(height: AppSpacing.s16),
-                        PrimaryButton(label: 'Thử lại', onPressed: _loadSettings),
+                        if (_isGuest)
+                          ListTile(
+                            title: Text(
+                              'Nhận thông báo lịch hẹn & sự kiện',
+                              style: AppTypography.body,
+                            ),
+                            subtitle: Text(
+                              'Đăng nhập để quản lý thông báo của bạn',
+                              style: AppTypography.compact,
+                            ),
+                            trailing: const Icon(
+                              Icons.lock_outline_rounded,
+                              color: AppColors.textSecondary,
+                            ),
+                            onTap: _loginForNotifications,
+                          )
+                        else
+                          SwitchListTile(
+                            title: Text(
+                              'Nhận thông báo lịch hẹn & sự kiện',
+                              style: AppTypography.body,
+                            ),
+                            subtitle: Text(
+                              'Cập nhật trạng thái đặt lịch và vé mời sự kiện',
+                              style: AppTypography.compact,
+                            ),
+                            value: _notificationConsent,
+                            activeThumbColor: AppColors.brandPrimary,
+                            onChanged: (val) {
+                              setState(() => _notificationConsent = val);
+                              _updateSetting(notificationConsent: val);
+                            },
+                          ),
                       ],
                     ),
                   ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSpacing.pageGutter),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Thông báo & Tương tác', style: AppTypography.sectionTitle),
-                      const SizedBox(height: AppSpacing.s8),
-                      XLandCard(
-                        padding: EdgeInsets.zero,
-                        child: Column(
-                          children: [
-                            if (_isGuest) ListTile(
-                              title: Text('Nhận thông báo lịch hẹn & sự kiện', style: AppTypography.body),
-                              subtitle: Text('Đăng nhập để quản lý thông báo của bạn', style: AppTypography.compact),
-                              trailing: const Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary),
-                              onTap: _loginForNotifications,
-                            ) else SwitchListTile(
-                              title: Text('Nhận thông báo lịch hẹn & sự kiện', style: AppTypography.body),
-                              subtitle: Text('Cập nhật trạng thái đặt lịch và vé mời sự kiện', style: AppTypography.compact),
-                              value: _notificationConsent,
-                              activeThumbColor: AppColors.brandPrimary,
-                              onChanged: (val) {
-                                setState(() => _notificationConsent = val);
-                                _updateSetting(notificationConsent: val);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
+                  const SizedBox(height: AppSpacing.s24),
 
-                      Text('Trải nghiệm Video Feed', style: AppTypography.sectionTitle),
-                      if (_isGuest && !_guestPreferencesAvailable)
-                        Text('Cài đặt trên thiết bị tạm thời chưa khả dụng.', style: AppTypography.compact),
-                      const SizedBox(height: AppSpacing.s8),
-                      XLandCard(
-                        padding: EdgeInsets.zero,
-                        child: Column(
-                          children: [
-                            SwitchListTile(
-                              title: Text('Tự động phát video', style: AppTypography.body),
-                              subtitle: Text('Tự động phát video thực địa khi cuộn tới', style: AppTypography.compact),
-                              value: _feedAutoplay,
-                              activeThumbColor: AppColors.brandPrimary,
-                              onChanged: _isGuest && !_guestPreferencesAvailable ? null : (val) {
-                                setState(() => _feedAutoplay = val);
-                                _updateSetting(feedAutoplay: val);
-                              },
-                            ),
-                            const Divider(height: 1),
-                            SwitchListTile(
-                              title: Text('Tắt tiếng mặc định', style: AppTypography.body),
-                              subtitle: Text('Bắt đầu phát video ở chế độ im lặng', style: AppTypography.compact),
-                              value: _feedMutedByDefault,
-                              activeThumbColor: AppColors.brandPrimary,
-                              onChanged: _isGuest && !_guestPreferencesAvailable ? null : (val) {
-                                setState(() => _feedMutedByDefault = val);
-                                _updateSetting(feedMutedByDefault: val);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
-
-                      Text('Khu vực & Ngôn ngữ', style: AppTypography.sectionTitle),
-                      const SizedBox(height: AppSpacing.s8),
-                      XLandCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(child:Text('Múi giờ', style: AppTypography.body)),
-                                Expanded(child:Text('Việt Nam (GMT+7)',textAlign:TextAlign.right, style: AppTypography.compactStrong)),
-                              ],
-                            ),
-                            const Divider(height: AppSpacing.s16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(child:Text('Ngôn ngữ hiển thị', style: AppTypography.body)),
-                                Expanded(child:Text('Tiếng Việt',textAlign:TextAlign.right, style: AppTypography.compactStrong)),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'Trải nghiệm Video Feed',
+                    style: AppTypography.sectionTitle,
                   ),
-                ),
+                  if (_isGuest && !_guestPreferencesAvailable)
+                    Text(
+                      'Cài đặt trên thiết bị tạm thời chưa khả dụng.',
+                      style: AppTypography.compact,
+                    ),
+                  const SizedBox(height: AppSpacing.s8),
+                  XLandCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          title: Text(
+                            'Tự động phát video',
+                            style: AppTypography.body,
+                          ),
+                          subtitle: Text(
+                            'Tự động phát video thực địa khi cuộn tới',
+                            style: AppTypography.compact,
+                          ),
+                          value: _feedAutoplay,
+                          activeThumbColor: AppColors.brandPrimary,
+                          onChanged: _isGuest && !_guestPreferencesAvailable
+                              ? null
+                              : (val) {
+                                  setState(() => _feedAutoplay = val);
+                                  _updateSetting(feedAutoplay: val);
+                                },
+                        ),
+                        const Divider(height: 1),
+                        SwitchListTile(
+                          title: Text(
+                            'Tắt tiếng mặc định',
+                            style: AppTypography.body,
+                          ),
+                          subtitle: Text(
+                            'Bắt đầu phát video ở chế độ im lặng',
+                            style: AppTypography.compact,
+                          ),
+                          value: _feedMutedByDefault,
+                          activeThumbColor: AppColors.brandPrimary,
+                          onChanged: _isGuest && !_guestPreferencesAvailable
+                              ? null
+                              : (val) {
+                                  setState(() => _feedMutedByDefault = val);
+                                  _updateSetting(feedMutedByDefault: val);
+                                },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s24),
+
+                  Text('Khu vực & Ngôn ngữ', style: AppTypography.sectionTitle),
+                  const SizedBox(height: AppSpacing.s8),
+                  XLandCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text('Múi giờ', style: AppTypography.body),
+                            ),
+                            Expanded(
+                              child: Text(
+                                'Việt Nam (GMT+7)',
+                                textAlign: TextAlign.right,
+                                style: AppTypography.compactStrong,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: AppSpacing.s16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Ngôn ngữ hiển thị',
+                                style: AppTypography.body,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                'Tiếng Việt',
+                                textAlign: TextAlign.right,
+                                style: AppTypography.compactStrong,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

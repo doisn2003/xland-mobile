@@ -23,4 +23,5 @@ ios/Flutter/flutter_export_environment.sh
 *.jks
 *.keystore
 *.apk
+/assets/prepared-demo/
 android/key.properties

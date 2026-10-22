@@ -1362,7 +1362,8 @@ class FakeAccountRepository implements AccountRepository {
         contactVerified: true,
         updatedAt: DateTime.utc(2026, 10, 15),
       ),
-      expiresAt: DateTime.utc(2026, 10, 22),
+      // Authenticated scenarios need a live fixture, independent of calendar date.
+      expiresAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
     );
     _currentSession = session;
     return session;

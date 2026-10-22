@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -82,6 +84,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
   int _bookingEpoch = 0;
   int _feedEpoch = 0;
   int _settingsEpoch = 0;
+  StreamSubscription<Set<String>>? _contentSubscription;
 
   @override
   void initState() {
@@ -113,6 +116,12 @@ class _MainNavigationShellState extends State<MainNavigationShell>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _contentSubscription ??= DependenciesScope.maybeOf(context)?.contentChanges
+        ?.listen((paths) {
+          if (mounted && paths.contains('/feed')) {
+            _loadInitialFeed(refreshSettings: false, silent: true);
+          }
+        });
     final modalRoute = ModalRoute.of(context);
     if (modalRoute != null) {
       _isRouteCovered = !modalRoute.isCurrent;
@@ -132,6 +141,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
 
   @override
   void dispose() {
+    _contentSubscription?.cancel();
     _transactionsScrollController.dispose();
     _clearFeedLikes();
     XLandApp.routeObserver.unsubscribe(this);
@@ -192,25 +202,28 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     }
   }
 
-  Future<void> _loadInitialFeed() async {
+  Future<void> _loadInitialFeed({
+    bool refreshSettings = true,
+    bool silent = false,
+    bool forceRefresh = false,
+  }) async {
     final deps = DependenciesScope.maybeOf(context);
     if (deps == null || widget.forcePlaceholder) return;
     final currentEpoch = ++_feedEpoch;
     setState(() {
-      _isLoadingFeed = true;
+      _isLoadingFeed = !silent;
       _feedError = null;
     });
 
     try {
-      late Page<FeedVideo> page;
-      await Future.wait<void>([
-        deps.feed
-            .getFeed(const PageQuery(limit: 10), feedScope: _feedScope)
-            .then((value) {
-              page = value;
-            }),
-        _loadSettings(),
-      ]);
+      if (forceRefresh) await deps.refreshContent?.call('/feed');
+      // Session/settings validation may take several remote trips; it must not
+      // hold the public feed behind it. Playback waits for _settingsReady.
+      if (refreshSettings) unawaited(_loadSettings());
+      final page = await deps.feed.getFeed(
+        const PageQuery(limit: 10),
+        feedScope: _feedScope,
+      );
       if (!mounted || currentEpoch != _feedEpoch) return;
       setState(() {
         _feedVideos = List.of(page.items);
@@ -603,6 +616,14 @@ class _MainNavigationShellState extends State<MainNavigationShell>
                           onScopeChanged: _changeFeedScope,
                           onFilterTap: _openFeedFilter,
                           onNavigationTap: _showFeedNavigation,
+                          onRefresh:
+                              DependenciesScope.of(context).refreshContent !=
+                                  null
+                              ? () => _loadInitialFeed(
+                                  forceRefresh: true,
+                                  refreshSettings: false,
+                                )
+                              : null,
                           isCurrent:
                               _currentIndex == 0 &&
                               _activeFeedIndex == index &&

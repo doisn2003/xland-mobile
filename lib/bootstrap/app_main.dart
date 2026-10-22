@@ -16,6 +16,9 @@ import '../data/auth/google_identity_client.dart';
 import '../data/repositories/remaining_repositories.dart';
 import '../data/repositories/local_guest_preferences_repository.dart';
 import '../data/demo/demo_media_repositories.dart';
+import '../data/demo/prepared_snapshot.dart';
+import '../data/demo/prepared_transport.dart';
+import '../presentation/shared/di/prepared_content_scope.dart';
 import '../presentation/app/xland_app.dart';
 import 'app_config.dart';
 
@@ -26,16 +29,19 @@ void main() {
 
 /// Shared application composition; release configuration cannot fall back to local API.
 class XlandComposition extends StatefulWidget {
-  const XlandComposition({super.key});
+  const XlandComposition({super.key, this.preparedSnapshot});
+  final PreparedSnapshot? preparedSnapshot;
   @override
   State<XlandComposition> createState() => _XlandCompositionState();
 }
 
-class _XlandCompositionState extends State<XlandComposition> {
+class _XlandCompositionState extends State<XlandComposition>
+    with WidgetsBindingObserver {
   final _client = http.Client();
   late final XlandDependencies dependencies;
   late final AreaMapRepository areaMaps;
   late final AppConfig config;
+  PreparedTransport? prepared;
   @override
   void initState() {
     super.initState();
@@ -48,19 +54,32 @@ class _XlandCompositionState extends State<XlandComposition> {
       reportMode: const bool.fromEnvironment('XLAND_REPORT_MODE'),
     );
     final sessions = SecureSessionStore(const FlutterSecureStorage());
-    final transport = HttpApiTransport(
+    final remote = HttpApiTransport(
       baseUrl: config.apiBaseUrl,
       client: _client,
       sessions: sessions,
       allowLocalHttp: !kReleaseMode,
     );
+    final snapshot = widget.preparedSnapshot;
+    if (snapshot != null) {
+      if (snapshot.apiOrigin != config.apiBaseUrl.toString()) {
+        throw StateError('Prepared content belongs to another API origin.');
+      }
+      prepared = PreparedTransport(
+        remote: remote,
+        sessions: sessions,
+        snapshot: snapshot,
+        store: const SecurePreparedStore(FlutterSecureStorage()),
+      );
+      WidgetsBinding.instance.addObserver(this);
+    }
     const demoMedia = String.fromEnvironment('XLAND_DEMO_MEDIA_BASE_URL');
     const demoScenario = String.fromEnvironment(
       'XLAND_DEMO_MEDIA_SCENARIO',
       defaultValue: 'normal',
     );
     final g = RemoteGateway(
-      transport,
+      prepared ?? remote,
       availableOperations: const {
         'F01',
         'F02',
@@ -157,6 +176,8 @@ class _XlandCompositionState extends State<XlandComposition> {
       allowLocalHttp: !kReleaseMode,
     );
     dependencies = XlandDependencies(
+      contentChanges: prepared?.contentChanges,
+      refreshContent: prepared?.refreshContent,
       properties: RemotePropertyRepository(g),
       account: account,
       extendedAuth: extendedAuth,
@@ -183,27 +204,39 @@ class _XlandCompositionState extends State<XlandComposition> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    prepared?.dispose();
     _client.close();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => AreaMapScope(
-    createTileProvider: XlandMapTileProvider.new,
-    repository: areaMaps,
-    child: kReleaseMode || const bool.fromEnvironment('XLAND_REPORT_MODE')
-        ? XLandApp(dependencies: dependencies, showDeveloperTools: false)
-        : Directionality(
-            textDirection: TextDirection.ltr,
-            child: Banner(
-              message:
-                  const String.fromEnvironment('XLAND_DEMO_MEDIA_BASE_URL')
-                      .isEmpty
-                  ? 'DEV · ${config.apiEnvironmentLabel}'
-                  : 'DEV · SYNTHETIC MEDIA',
-              location: BannerLocation.topEnd,
-              child: XLandApp(dependencies: dependencies),
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) prepared?.refreshRoots();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final app = AreaMapScope(
+      createTileProvider: XlandMapTileProvider.new,
+      repository: areaMaps,
+      child: kReleaseMode || const bool.fromEnvironment('XLAND_REPORT_MODE')
+          ? XLandApp(dependencies: dependencies, showDeveloperTools: false)
+          : Directionality(
+              textDirection: TextDirection.ltr,
+              child: Banner(
+                message:
+                    const String.fromEnvironment('XLAND_DEMO_MEDIA_BASE_URL')
+                        .isEmpty
+                    ? 'DEV · ${config.apiEnvironmentLabel}'
+                    : 'DEV · SYNTHETIC MEDIA',
+                location: BannerLocation.topEnd,
+                child: XLandApp(dependencies: dependencies),
+              ),
             ),
-          ),
-  );
+    );
+    return prepared == null
+        ? app
+        : PreparedContentScope(controller: prepared!, child: app);
+  }
 }

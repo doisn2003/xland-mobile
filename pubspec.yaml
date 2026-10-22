@@ -12,6 +12,7 @@ dependencies:
   bloc: 9.0.0
   intl: 0.20.2
   http: 1.6.0
+  crypto: 3.0.7
   flutter_secure_storage: 11.2.0
   video_player: 2.11.1
   google_sign_in: 7.2.0
@@ -36,7 +37,6 @@ dependency_overrides:
   mime:
     path: third_party/mime
 dev_dependencies:
-  crypto: 3.0.7
   integration_test:
     sdk: flutter
   flutter_test:
@@ -48,6 +48,9 @@ flutter:
     - assets/branding/
     - assets/images/
     - assets/images/report/
+    - assets/prepared-demo/
+    - assets/prepared-demo/media/
+    - assets/prepared-demo/tiles/
     - assets/icons/
     - assets/animations/xland-nft.json
     - assets/animations/xland-nft-poster.png

@@ -17,6 +17,8 @@ final class XlandDependencies {
     required this.support,
     this.guestPreferences,
     this.extendedAuth,
+    this.contentChanges,
+    this.refreshContent,
   });
   final PropertyRepository properties;
   final FeedRepository feed;
@@ -30,4 +32,6 @@ final class XlandDependencies {
   final SupportRepository support;
   final GuestPreferencesRepository? guestPreferences;
   final ExtendedAuthRepository? extendedAuth;
+  final Stream<Set<String>>? contentChanges;
+  final Future<void> Function(String path)? refreshContent;
 }

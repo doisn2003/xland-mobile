@@ -33,7 +33,11 @@ class DiscoveryPage extends StatelessWidget {
 
     return BlocProvider(
       create: (_) {
-        final cubit = DiscoveryCubit(deps.properties);
+        final cubit = DiscoveryCubit(
+          deps.properties,
+          contentChanges: deps.contentChanges,
+          refreshContent: deps.refreshContent,
+        );
         if (initialFilter != null) {
           cubit.applyFilter(initialFilter!);
         } else {
@@ -221,7 +225,7 @@ class _DiscoveryViewState extends State<DiscoveryView> {
           // Main Scrollable Content
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () => cubit.loadProperties(),
+              onRefresh: () => cubit.loadProperties(forceRefresh: true),
               color: AppColors.brandPrimary,
               child: CustomScrollView(
                 controller: _scrollController,
