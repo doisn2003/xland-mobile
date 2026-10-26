@@ -29,7 +29,7 @@ Widget _buildTestHarness({
 
 void main() {
   group('S01 Discovery & S09 Filter Sheet (P2-B1)', () {
-    testWidgets('renders search bar, category chips, hero carousel, and initial properties', (tester) async {
+    testWidgets('renders search bar, hero carousel, and initial properties', (tester) async {
       final dependencies = createFakeDependencies();
 
       await tester.pumpWidget(_buildTestHarness(dependencies: dependencies));
@@ -38,9 +38,9 @@ void main() {
       // Check search field
       expect(find.byType(TextField), findsOneWidget);
 
-      // Check category chips
-      expect(find.text('Đất nền'), findsOneWidget);
-      expect(find.text('Công nghiệp'), findsOneWidget);
+      // Verify category chips are removed
+      expect(find.text('Đất nền'), findsNothing);
+      expect(find.text('Công nghiệp'), findsNothing);
 
       // Check properties loaded from fake (XL-028, XL-029, XL-030, XL-031)
       expect(find.byType(PropertyCard), findsWidgets);

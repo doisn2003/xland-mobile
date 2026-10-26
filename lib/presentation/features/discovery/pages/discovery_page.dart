@@ -13,7 +13,6 @@ import '../../clubs/pages/club_list_page.dart';
 import '../../events/pages/event_detail_page.dart';
 import '../../property_detail/pages/property_detail_page.dart';
 import '../cubit/discovery_cubit.dart';
-import '../widgets/category_selector.dart';
 import '../widgets/hero_carousel.dart';
 import '../widgets/property_card.dart';
 import '../widgets/property_filter_sheet.dart';
@@ -226,34 +225,6 @@ class _DiscoveryViewState extends State<DiscoveryView> {
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
-                  // Category Selector (Tabs)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-                      child: CategorySelector(
-                        selectedIndex: _getCategoryIndex(state.activeCategory),
-                        onSelected: (idx) {
-                          if (idx < 2) {
-                            cubit.selectCategory(
-                              CategorySelector.categories[idx],
-                            );
-                          } else if (idx == 4) {
-                            if (_featuredEvent != null) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => EventDetailPage(
-                                    eventId: _featuredEvent!.id,
-                                  ),
-                                ),
-                              );
-                            }
-                          } else {
-                            _choosePropertyTool(idx == 2 ? 1 : 3);
-                          }
-                        },
-                      ),
-                    ),
-                  ),
 
                   SliverToBoxAdapter(
                     child: Padding(
@@ -611,58 +582,5 @@ class _DiscoveryViewState extends State<DiscoveryView> {
         ],
       ),
     );
-  }
-
-  Future<void> _choosePropertyTool(int tab) async {
-    final properties = context.read<DiscoveryCubit>().state.properties;
-    if (properties.isEmpty) {
-      await _openFilterSheet();
-      return;
-    }
-    final property = await showXLandBottomSheet<Property>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                tab == 1
-                    ? 'Chọn lô đất để xem hồ sơ'
-                    : 'Chọn lô đất để lập phương án vay',
-                style: AppTypography.sectionTitle,
-              ),
-            ),
-            for (final p in properties)
-              ListTile(
-                title: Text(p.title),
-                subtitle: Text(p.code),
-                leading: Icon(
-                  tab == 1
-                      ? Icons.description_outlined
-                      : Icons.savings_outlined,
-                  color: AppColors.goldDecorative,
-                ),
-                onTap: () => Navigator.pop(context, p),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (property != null && mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) =>
-              PropertyDetailPage(propertyId: property.id, initialTab: tab),
-        ),
-      );
-    }
-  }
-
-  int _getCategoryIndex(String category) {
-    final idx = CategorySelector.categories.indexOf(category);
-    return idx >= 0 ? idx : 0;
   }
 }
