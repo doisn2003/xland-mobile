@@ -19,6 +19,10 @@ import '../widgets/area_info_tab.dart';
 import '../widgets/finance_plan_tab.dart';
 import '../widgets/legal_summary_tab.dart';
 import '../widgets/property_overview_tab.dart';
+import '../widgets/compare_property_icon.dart';
+import '../widgets/property_comparison_picker.dart';
+import '../widgets/property_comparison_scope.dart';
+import 'property_comparison_page.dart';
 
 /// S02 Property Detail Page.
 /// Preserves propertyId across tabs and provides sticky actions for booking and consultation.
@@ -28,11 +32,13 @@ class PropertyDetailPage extends StatelessWidget {
     required this.propertyId,
     this.onBookingTap,
     this.initialTab = 0,
+    this.comparisonPane = false,
   });
 
   final String propertyId;
   final int initialTab;
   final VoidCallback? onBookingTap;
+  final bool comparisonPane;
 
   @override
   Widget build(BuildContext context) {
@@ -47,15 +53,23 @@ class PropertyDetailPage extends StatelessWidget {
             )
             ..selectTab(initialTab.clamp(0, 3))
             ..loadPropertyDetail(),
-      child: PropertyDetailView(onBookingTap: onBookingTap),
+      child: PropertyDetailView(
+        onBookingTap: onBookingTap,
+        comparisonPane: comparisonPane,
+      ),
     );
   }
 }
 
 class PropertyDetailView extends StatefulWidget {
-  const PropertyDetailView({super.key, this.onBookingTap});
+  const PropertyDetailView({
+    super.key,
+    this.onBookingTap,
+    this.comparisonPane = false,
+  });
 
   final VoidCallback? onBookingTap;
+  final bool comparisonPane;
   @override
   State<PropertyDetailView> createState() => _PropertyDetailViewState();
 }
@@ -64,6 +78,24 @@ class _PropertyDetailViewState extends State<PropertyDetailView> {
   final _financeKey = GlobalKey<FinancePlanTabState>();
   bool _canSaveFinance = false;
   final _scrollController = ScrollController();
+  bool _choosingComparison = false;
+
+  Future<void> _handleCompare(Property property) async {
+    if (_choosingComparison) return;
+    setState(() => _choosingComparison = true);
+    try {
+      final other = await PropertyComparisonPicker.show(context, property);
+      if (!mounted || other == null || other.id == property.id) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              PropertyComparisonPage(first: property, second: other),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _choosingComparison = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -115,7 +147,8 @@ class _PropertyDetailViewState extends State<PropertyDetailView> {
 
   Future<void> _handleShare(BuildContext context, Property property) async {
     final repository = DependenciesScope.of(context).properties;
-    await ShareSheet.show(context,
+    await ShareSheet.show(
+      context,
       title: property.title,
       loadLink: () => repository.getShareLink(property.id),
     );
@@ -126,37 +159,56 @@ class _PropertyDetailViewState extends State<PropertyDetailView> {
     final cubit = context.watch<PropertyDetailCubit>();
     final state = cubit.state;
     final property = state.property;
+    final isComparison =
+        PropertyComparisonScope.isActive(context) || widget.comparisonPane;
+    final editingComparison =
+        isComparison && MediaQuery.viewInsetsOf(context).bottom > 0;
 
     return XLandScaffold(
       body: Column(
         children: [
           // App Bar with Share & Bookmark
-          XLandAppBar(
-            variant: XLandAppBarVariant.light,
-            title: property == null ? 'Chi tiết bất động sản' : null,
-            showBack: true,
-            onBack: () => Navigator.of(context).pop(),
-            actions: [
-              if (property != null) ...[
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: XLandLogo(height: 24),
-                ),
-                IconActionButton(
-                  icon: property.isSaved
-                      ? Icons.bookmark_rounded
-                      : Icons.bookmark_border_rounded,
-                  semanticLabel: property.isSaved ? 'Bỏ lưu' : 'Lưu',
-                  onPressed: () => _handleBookmark(context),
-                ),
-                IconActionButton(
-                  icon: Icons.share_outlined,
-                  semanticLabel: 'Chia sẻ',
-                  onPressed: () => _handleShare(context, property),
-                ),
+          if (!editingComparison)
+            XLandAppBar(
+              variant: XLandAppBarVariant.light,
+              title: property == null
+                  ? 'Chi tiết bất động sản'
+                  : isComparison
+                  ? property.code
+                  : null,
+              showBack: !widget.comparisonPane,
+              onBack: () => Navigator.of(context).pop(),
+              actions: [
+                if (property != null) ...[
+                  if (!isComparison)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: XLandLogo(height: 24),
+                    ),
+                  IconActionButton(
+                    icon: property.isSaved
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_border_rounded,
+                    semanticLabel: property.isSaved ? 'Bỏ lưu' : 'Lưu',
+                    onPressed: () => _handleBookmark(context),
+                  ),
+                  if (!isComparison)
+                    IconButton(
+                      tooltip: 'So sánh lô đất',
+                      onPressed: _choosingComparison
+                          ? null
+                          : () => _handleCompare(property),
+                      icon: const ComparePropertyIcon(),
+                      color: AppColors.textPrimary,
+                    ),
+                  IconActionButton(
+                    icon: Icons.share_outlined,
+                    semanticLabel: 'Chia sẻ',
+                    onPressed: () => _handleShare(context, property),
+                  ),
+                ],
               ],
-            ],
-          ),
+            ),
 
           // Main Content or State Placeholders
           if (state.isLoading)
@@ -197,6 +249,7 @@ class _PropertyDetailViewState extends State<PropertyDetailView> {
             )
           else if (property != null) ...[
             Expanded(
+              key: const ValueKey('property-detail-content'),
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
@@ -310,135 +363,143 @@ class _PropertyDetailViewState extends State<PropertyDetailView> {
             ),
 
             // Sticky Bottom CTA Bar
-            Container(
-              padding: EdgeInsets.only(
-                left: AppSpacing.pageGutter,
-                right: AppSpacing.pageGutter,
-                top: AppSpacing.s12,
-                bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.s12,
-              ),
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                border: Border(top: BorderSide(color: AppColors.border)),
-              ),
-              child: state.activeTab == 3
-                  ? Row(
-                      children: [
-                        Expanded(
-                          child: OutlineButton(
-                            label: 'Lưu phương án',
-                            icon: const Icon(Icons.bookmark_outline, size: 20),
-                            onPressed: _canSaveFinance
-                                ? () => _financeKey.currentState?.savePlan()
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: PrimaryButton(
-                            label: 'Tư vấn khoản vay',
-                            icon: const Icon(
-                              Icons.chat_bubble_outline,
-                              size: 20,
+            if (!editingComparison)
+              Container(
+                padding: EdgeInsets.only(
+                  left: AppSpacing.pageGutter,
+                  right: AppSpacing.pageGutter,
+                  top: isComparison ? 6 : AppSpacing.s12,
+                  bottom:
+                      MediaQuery.paddingOf(context).bottom +
+                      (isComparison ? 6 : AppSpacing.s12),
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  border: Border(top: BorderSide(color: AppColors.border)),
+                ),
+                child: state.activeTab == 3
+                    ? Row(
+                        children: [
+                          Expanded(
+                            child: OutlineButton(
+                              label: 'Lưu phương án',
+                              icon: const Icon(
+                                Icons.bookmark_outline,
+                                size: 20,
+                              ),
+                              onPressed: _canSaveFinance
+                                  ? () => _financeKey.currentState?.savePlan()
+                                  : null,
                             ),
-                            onPressed: () =>
-                                _financeKey.currentState?.requestLoanAdvice(),
                           ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () {
-                              if (state.consultant != null) {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => ConsultantProfilePage(
-                                      consultantId: state.consultant!.id,
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Row(
-                              children: [
-                                if (state.consultant != null) ...[
-                                  SizedBox(
-                                    width: 38,
-                                    height: 38,
-                                    child: ClipOval(
-                                      child: XLandMediaImage(
-                                        url: state.consultant!.avatarUrl,
-                                        isIllustrative:
-                                            state.consultant!.isIllustrative,
-                                        illustrativeAsset:
-                                            IllustrativeAssets.consultant,
-                                        showLabel: false,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                ],
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        state.consultant?.name ??
-                                            'Tư vấn XLand',
-                                        style: AppTypography.compactStrong,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        'Chuyên viên tư vấn',
-                                        style: AppTypography.compact.copyWith(
-                                          fontSize: 10,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: 'Tư vấn khoản vay',
+                              icon: const Icon(
+                                Icons.chat_bubble_outline,
+                                size: 20,
+                              ),
+                              onPressed: () =>
+                                  _financeKey.currentState?.requestLoanAdvice(),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          if (!isComparison)
+                            Expanded(
+                              child: InkWell(
+                                onTap: () {
+                                  if (state.consultant != null) {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => ConsultantProfilePage(
+                                          consultantId: state.consultant!.id,
                                         ),
                                       ),
+                                    );
+                                  }
+                                },
+                                child: Row(
+                                  children: [
+                                    if (state.consultant != null) ...[
+                                      SizedBox(
+                                        width: 38,
+                                        height: 38,
+                                        child: ClipOval(
+                                          child: XLandMediaImage(
+                                            url: state.consultant!.avatarUrl,
+                                            isIllustrative: state
+                                                .consultant!
+                                                .isIllustrative,
+                                            illustrativeAsset:
+                                                IllustrativeAssets.consultant,
+                                            showLabel: false,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
                                     ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.s12),
-                        Expanded(
-                          flex: 2,
-                          child: PrimaryButton(
-                            label: state.activeTab == 2
-                                ? 'Khảo sát khu vực'
-                                : state.activeTab == 1
-                                ? 'Tư vấn hồ sơ'
-                                : 'Đặt lịch thực địa',
-                            icon: const Icon(
-                              Icons.calendar_today_outlined,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              if (state.activeTab == 1 &&
-                                  state.consultant != null) {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => ConsultantProfilePage(
-                                      consultantId: state.consultant!.id,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            state.consultant?.name ??
+                                                'Tư vấn XLand',
+                                            style: AppTypography.compactStrong,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            'Chuyên viên tư vấn',
+                                            style: AppTypography.compact
+                                                .copyWith(fontSize: 10),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              } else {
-                                _handleBooking(context);
-                              }
-                            },
+                                  ],
+                                ),
+                              ),
+                            ),
+                          if (!isComparison)
+                            const SizedBox(width: AppSpacing.s12),
+                          Expanded(
+                            flex: 2,
+                            child: PrimaryButton(
+                              label: state.activeTab == 2
+                                  ? 'Khảo sát khu vực'
+                                  : state.activeTab == 1
+                                  ? 'Tư vấn hồ sơ'
+                                  : 'Đặt lịch thực địa',
+                              icon: const Icon(
+                                Icons.calendar_today_outlined,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                if (state.activeTab == 1 &&
+                                    state.consultant != null) {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => ConsultantProfilePage(
+                                        consultantId: state.consultant!.id,
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  _handleBooking(context);
+                                }
+                              },
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-            ),
+                        ],
+                      ),
+              ),
           ],
         ],
       ),
