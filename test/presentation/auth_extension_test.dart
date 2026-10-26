@@ -209,7 +209,11 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.text('Đăng nhập số điện thoại chưa sẵn sàng.'),
+        find.text('Bạn chưa có tài khoản? Hãy đăng ký ngay'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Đăng ký ngay'),
         findsOneWidget,
       );
       await tester.tap(find.text('Tiếp tục với Google'));

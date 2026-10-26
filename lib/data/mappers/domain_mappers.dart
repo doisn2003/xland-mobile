@@ -1090,6 +1090,7 @@ UserProfile mapUserProfile(Object? input) {
   return UserProfile(
     id: (wireString)(wireField(value, 'id')),
     displayName: (wireString)(wireField(value, 'displayName')),
+    address: wireNullable(value['address'], wireString),
     avatarUrl: ((Object? value) =>
         wireNullable(value, wireUri))(wireField(value, 'avatarUrl')),
     contactPhone: ((Object? value) =>

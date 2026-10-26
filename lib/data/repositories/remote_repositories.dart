@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../domain/xland_domain.dart';
 import '../auth/auth_operation_coordinator.dart';
 import '../datasources/remote/api_transport.dart';
@@ -264,6 +266,27 @@ final class RemoteAccountRepository implements AccountRepository,AccountSessionE
   });
 
   @override
+  Future<Session> signUp(SignUpInput input) => _authOperation((attempt) async {
+    final result = await gateway.request('U01', 'POST', '/auth/register', (
+      value,
+    ) {
+      final data = wireObject(value);
+      final token = wireString(wireField(data, 'accessToken'));
+      if (!RegExp(r'^[A-Za-z0-9_-]{43}$').hasMatch(token)) {
+        throw const FormatException('Invalid opaque session');
+      }
+      return (token: token, session: mapSession(wireField(data, 'session')));
+    }, body: {'username': input.username, 'password': input.password});
+    attempt.check();
+    await sessions.saveAccessToken(accessToken: result.token);
+    try { attempt.check(); } on XlandFailure {
+      await sessions.clearIfMatches(accessToken: result.token);
+      rethrow;
+    }
+    return result.session;
+  });
+
+  @override
   Future<void> signOut() => _authOperation((_) async {
     final token=await sessions.readAccessToken();
     try {
@@ -283,7 +306,10 @@ final class RemoteAccountRepository implements AccountRepository,AccountSessionE
       gateway.request('U05', 'GET', '/me/profile', mapUserProfile);
   @override
   Future<UserProfile> updateProfile(ProfileUpdate input) async {
-    if ((input.clearAvatar && input.avatarUrl != null) ||
+    if ((input.clearAvatar &&
+            (input.avatarUrl != null || input.avatar != null)) ||
+        (input.avatar != null && input.avatarUrl != null) ||
+        (input.clearAddress && input.address != null) ||
         (input.clearContactPhone && input.contactPhone != null)) {
       throw const XlandFailure(
         code: FailureCode.invalidInput,
@@ -297,6 +323,15 @@ final class RemoteAccountRepository implements AccountRepository,AccountSessionE
       mapUserProfile,
       body: {
         if (input.displayName != null) 'displayName': input.displayName,
+        if (input.clearAddress)
+          'address': null
+        else if (input.address != null)
+          'address': input.address,
+        if (input.avatar != null)
+          'avatar': {
+            'mimeType': input.avatar!.mimeType,
+            'bytesBase64': base64Encode(input.avatar!.bytes),
+          },
         if (input.clearAvatar)
           'avatarUrl': null
         else if (input.avatarUrl != null)

@@ -117,6 +117,7 @@ abstract interface class PaymentRepository {
 abstract interface class AccountRepository {
   Future<Session?> getSession();
   Future<Session> signIn(SignInInput input);
+  Future<Session> signUp(SignUpInput input);
   Future<void> signOut();
   Future<UserProfile> getProfile();
   Future<UserProfile> updateProfile(ProfileUpdate input);

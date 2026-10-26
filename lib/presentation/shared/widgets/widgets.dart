@@ -9,3 +9,4 @@ export 'states.dart';
 export 'tabs.dart';
 export 'xland_app_bar.dart';
 export 'xland_logo.dart';
+export 'icons/google_logo.dart';

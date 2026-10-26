@@ -29,6 +29,7 @@ final class AuthAuthenticated extends AuthState {
           session.profile.displayName == other.session.profile.displayName &&
           session.profile.avatarUrl == other.session.profile.avatarUrl &&
           session.profile.contactPhone == other.session.profile.contactPhone &&
+          session.profile.address == other.session.profile.address &&
           session.profile.contactVerified ==
               other.session.profile.contactVerified &&
           session.profile.updatedAt == other.session.profile.updatedAt &&
@@ -40,6 +41,7 @@ final class AuthAuthenticated extends AuthState {
     session.profile.displayName,
     session.profile.avatarUrl,
     session.profile.contactPhone,
+    session.profile.address,
     session.profile.contactVerified,
     session.profile.updatedAt,
     session.expiresAt,

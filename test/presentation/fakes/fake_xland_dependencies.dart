@@ -1369,6 +1369,23 @@ class FakeAccountRepository implements AccountRepository {
   }
 
   @override
+  Future<Session> signUp(SignUpInput input) async {
+    final session = Session(
+      profile: UserProfile(
+        id: 'usr-${input.username}',
+        displayName: input.username,
+        avatarUrl: null,
+        contactPhone: null,
+        contactVerified: false,
+        updatedAt: DateTime.utc(2026, 10, 15),
+      ),
+      expiresAt: DateTime.now().toUtc().add(const Duration(days: 36500)),
+    );
+    _currentSession = session;
+    return session;
+  }
+
+  @override
   Future<void> signOut() async {
     _currentSession = null;
   }
@@ -1387,7 +1404,7 @@ class FakeAccountRepository implements AccountRepository {
       throw const XlandFailure.unauthenticated();
     }
     // Conflict checks: clear flag true + value present => invalidInput
-    if (input.clearAvatar && input.avatarUrl != null) {
+    if (input.clearAvatar && (input.avatarUrl != null || input.avatar != null)) {
       throw const XlandFailure(
         code: FailureCode.invalidInput,
         message: 'clearAvatar cannot be combined with avatarUrl',
@@ -1401,7 +1418,7 @@ class FakeAccountRepository implements AccountRepository {
     }
 
     final current = _currentSession!.profile;
-    final Uri? newAvatar = input.clearAvatar ? null : (input.avatarUrl ?? current.avatarUrl);
+    final Uri? newAvatar = input.clearAvatar ? null : (input.avatar != null ? Uri.parse('https://avatars.example.test/avatar.png') : input.avatarUrl ?? current.avatarUrl);
     final String? newPhone;
     final bool newVerified;
     if (input.clearContactPhone) {
@@ -1418,6 +1435,7 @@ class FakeAccountRepository implements AccountRepository {
     final updated = UserProfile(
       id: current.id,
       displayName: input.displayName ?? current.displayName,
+      address: input.clearAddress ? null : input.address ?? current.address,
       avatarUrl: newAvatar,
       contactPhone: newPhone,
       contactVerified: newVerified,

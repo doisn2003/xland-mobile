@@ -61,7 +61,9 @@ final class HttpApiTransport implements ApiTransport {
       final response = await client
           .send(outgoing)
           .then(http.Response.fromStream)
-          .timeout(timeout);
+          .timeout(request.path == '/me/profile' && request.body?['avatar'] != null
+              ? const Duration(seconds: 90)
+              : timeout);
       requestId = response.headers['x-request-id'];
       final parsed = jsonDecode(response.body);
       if (parsed is! Map<String, Object?>) {
@@ -75,6 +77,9 @@ final class HttpApiTransport implements ApiTransport {
         final rawCode = error['code'];
         const codes = <String, FailureCode>{
           'INVALID_INPUT': FailureCode.invalidInput,
+          'INVALID_FILE': FailureCode.invalidInput,
+          'STORAGE_NOT_CONFIGURED': FailureCode.featureNotEnabled,
+          'STORAGE_ERROR': FailureCode.upstreamUnavailable,
           'PAYLOAD_TOO_LARGE': FailureCode.invalidInput,
           'UNAUTHENTICATED': FailureCode.unauthenticated,
           'FORBIDDEN': FailureCode.forbidden,

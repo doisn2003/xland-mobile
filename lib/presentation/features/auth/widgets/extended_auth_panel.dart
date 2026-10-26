@@ -10,6 +10,7 @@ import '../../../../domain/failures/xland_failure.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../../theme/theme.dart';
 import '../cubit/auth_cubit.dart';
+import '../pages/register_page.dart';
 
 class ExtendedAuthPanel extends StatefulWidget {
   const ExtendedAuthPanel({
@@ -159,6 +160,7 @@ class _ExtendedAuthPanelState extends State<ExtendedAuthPanel> {
         if (_loadingCapabilities) const LinearProgressIndicator(),
         OutlineButton(
           label: 'Tiếp tục với Google',
+          icon: const GoogleLogo(size: 20),
           onPressed: !busy && !_loadingCapabilities && _capabilities.google
               ? () async {
                   final success = await context
@@ -173,18 +175,39 @@ class _ExtendedAuthPanelState extends State<ExtendedAuthPanel> {
             'Đăng nhập Google chưa sẵn sàng trên thiết bị này.',
             textAlign: TextAlign.center,
           ),
-        const SizedBox(height: AppSpacing.s12),
-        OutlineButton(
-          label: 'Đăng ký / đăng nhập bằng số điện thoại',
-          onPressed: !busy && !_loadingCapabilities && _capabilities.phoneOtp
-              ? () => setState(() => _phoneMode = !_phoneMode)
-              : null,
-        ),
-        if (!_loadingCapabilities && !_capabilities.phoneOtp)
-          const Text(
-            'Đăng nhập số điện thoại chưa sẵn sàng.',
-            textAlign: TextAlign.center,
+        const SizedBox(height: AppSpacing.s16),
+        Text(
+          'Bạn chưa có tài khoản? Hãy đăng ký ngay',
+          textAlign: TextAlign.center,
+          style: AppTypography.compact.copyWith(
+            color: AppColors.textSecondary,
           ),
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        OutlineButton(
+          label: 'Đăng ký ngay',
+          onPressed: busy
+              ? null
+              : () async {
+                  final result = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute<bool>(
+                      builder: (_) => RegisterPage(onSuccess: widget.onSuccess),
+                    ),
+                  );
+                  if (result == true && mounted) {
+                    widget.onSuccess();
+                  }
+                },
+        ),
+        if (_capabilities.phoneOtp) ...[
+          const SizedBox(height: AppSpacing.s12),
+          OutlineButton(
+            label: 'Đăng ký / đăng nhập bằng số điện thoại',
+            onPressed: !busy && !_loadingCapabilities
+                ? () => setState(() => _phoneMode = !_phoneMode)
+                : null,
+          ),
+        ],
         if (_error != null) ...[
           const SizedBox(height: AppSpacing.s12),
           InfoNotice(
@@ -193,11 +216,7 @@ class _ExtendedAuthPanelState extends State<ExtendedAuthPanel> {
             variant: NoticeVariant.danger,
           ),
         ],
-        if (_repository != null && !_loadingCapabilities && !_phoneMode)
-          TextButton(
-            onPressed: busy ? null : _loadCapabilities,
-            child: const Text('Kiểm tra lại phương thức đăng nhập'),
-          ),
+        
         if (_phoneMode) ...[
           const SizedBox(height: AppSpacing.s16),
           TextField(

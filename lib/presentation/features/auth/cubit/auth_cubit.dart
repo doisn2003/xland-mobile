@@ -53,6 +53,18 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  void profileUpdated(UserProfile profile) {
+    final current = state;
+    if (!isClosed &&
+        current is AuthAuthenticated &&
+        current.session.profile.id == profile.id) {
+      emit(AuthAuthenticated(Session(
+        profile: profile,
+        expiresAt: current.session.expiresAt,
+      )));
+    }
+  }
+
   Future<bool> signIn({
     required String username,
     required String password,
@@ -85,6 +97,43 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (e) {
       if (_current(epoch)) {
         emit(const AuthError('Không thể đăng nhập. Vui lòng thử lại.'));
+      }
+      return false;
+    }
+  }
+
+  Future<bool> signUp({
+    required String username,
+    required String password,
+  }) async {
+    extendedAuth?.cancelPendingSignIn();
+    final epoch = ++_sessionEpoch;
+    if (isClosed) return false;
+    final cleanUsername = username.trim().toLowerCase();
+    if (cleanUsername.length < 3 || cleanUsername.length > 64) {
+      emit(const AuthError('Tên đăng nhập phải có từ 3 đến 64 ký tự.'));
+      return false;
+    }
+
+    if (password.length < 8 || password.length > 128) {
+      emit(const AuthError('Mật khẩu phải có từ 8 đến 128 ký tự.'));
+      return false;
+    }
+
+    emit(const AuthLoading());
+    try {
+      final session = await _accountRepository.signUp(
+        SignUpInput(username: cleanUsername, password: password),
+      );
+      if (!_current(epoch)) return false;
+      emit(AuthAuthenticated(session));
+      return true;
+    } on XlandFailure catch (failure) {
+      if (_current(epoch)) emit(AuthError(failure.message));
+      return false;
+    } catch (e) {
+      if (_current(epoch)) {
+        emit(const AuthError('Không thể đăng ký. Vui lòng thử lại.'));
       }
       return false;
     }
