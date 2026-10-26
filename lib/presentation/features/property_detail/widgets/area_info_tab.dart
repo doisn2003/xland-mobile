@@ -206,7 +206,7 @@ class AreaInfoTab extends StatelessWidget {
           // Provider Attribution
           Center(
             child: Text(
-              'Thông tin tiện ích do XLand tổng hợp. Khoảng cách mô tả khu vực, không tính từ vị trí lô đất.',
+              'Thông tin tiện ích do XLand tổng hợp',
               style: AppTypography.compact.copyWith(
                 color: AppColors.disabledForeground,
               ),
