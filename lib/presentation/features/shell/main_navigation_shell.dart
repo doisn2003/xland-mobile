@@ -27,7 +27,7 @@ import '../events/pages/events_tab_page.dart';
 /// Main navigation shell holding the 4 core tabs of XLand:
 /// 0. Trang chủ (Feed video ngắn)
 /// 1. Khám phá (Discovery / Listing)
-/// 2. Sự kiện (Tạm thời bỏ trống)
+/// 2. Sự kiện & Câu lạc bộ
 /// 3. Tôi (Hồ sơ cá nhân & Cài đặt)
 class MainNavigationShell extends StatefulWidget {
   const MainNavigationShell({

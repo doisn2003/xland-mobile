@@ -411,7 +411,7 @@ void main() {
   });
 
   group('W2 B4: Events Tab 2 & Dedicated BookingHistoryPage', () {
-    testWidgets('Tab 2 renders Sự kiện placeholder', (tester) async {
+    testWidgets('Tab 2 renders clubs and events from repositories', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -431,7 +431,9 @@ void main() {
 
       expect(find.text('Sự kiện'), findsWidgets);
       expect(find.text('Sự kiện XLand'), findsOneWidget);
-      expect(find.text('Tính năng sự kiện đang được hoàn thiện và sẽ sớm ra mắt.'), findsOneWidget);
+      expect(find.text('Câu lạc bộ'), findsOneWidget);
+      expect(find.text('Câu lạc bộ tìm hiểu đất nền'), findsOneWidget);
+      expect(find.text('Tính năng sự kiện đang được hoàn thiện và sẽ sớm ra mắt.'), findsNothing);
     });
 
     testWidgets('Guest sees login notice in BookingHistoryPage', (tester) async {

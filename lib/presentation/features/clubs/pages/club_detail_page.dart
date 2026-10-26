@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../domain/xland_domain.dart';
 import '../../../shared/di/dependencies_scope.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../../theme/theme.dart';
+import '../../events/widgets/community_cards.dart';
 
 /// Investor & Community Club Detail Page (K02).
 /// Features:
@@ -11,10 +13,7 @@ import '../../../theme/theme.dart';
 /// - Illustrative notice (no fake payment or membership trading)
 /// - Read-only introductory content per Phase 2 C-4 Baseline
 class ClubDetailPage extends StatefulWidget {
-  const ClubDetailPage({
-    super.key,
-    required this.clubId,
-  });
+  const ClubDetailPage({super.key, required this.clubId});
 
   final String clubId;
 
@@ -69,21 +68,33 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const XLandScaffold(
-        appBar: XLandAppBar(title: 'Câu lạc bộ', variant: XLandAppBarVariant.light),
-        body: Center(child: CircularProgressIndicator(color: AppColors.brandPrimary)),
+        appBar: XLandAppBar(
+          title: 'Câu lạc bộ',
+          variant: XLandAppBarVariant.light,
+        ),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.brandPrimary),
+        ),
       );
     }
 
     if (_errorMessage != null || _club == null) {
       return XLandScaffold(
-        appBar: const XLandAppBar(title: 'Câu lạc bộ', variant: XLandAppBarVariant.light),
+        appBar: const XLandAppBar(
+          title: 'Câu lạc bộ',
+          variant: XLandAppBarVariant.light,
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.pageGutter),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.danger),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  size: 48,
+                  color: AppColors.danger,
+                ),
                 const SizedBox(height: AppSpacing.s12),
                 Text(
                   _errorMessage ?? 'Không tìm thấy câu lạc bộ.',
@@ -102,21 +113,30 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     final c = _club!;
 
     return XLandScaffold(
-      appBar: XLandAppBar(
-        title: c.title,
-        variant: XLandAppBarVariant.light,
-      ),
+      appBar: XLandAppBar(title: c.title, variant: XLandAppBarVariant.light),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.pageGutter),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: CommunityCover(
+                media: c.media,
+                isIllustrative: c.isIllustrative,
+                aspectRatio: 16 / 9,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s16),
             // Region & Badge Row
             Wrap(
               spacing: 8,
               runSpacing: 6,
               children: [
-                StatusBadge(text: c.regionLabel, variant: StatusBadgeVariant.source),
+                StatusBadge(
+                  text: c.regionLabel,
+                  variant: StatusBadgeVariant.source,
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.s12),
@@ -132,21 +152,31 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Giới thiệu hoạt động', style: AppTypography.sectionTitle),
+                  Text(
+                    'Giới thiệu hoạt động',
+                    style: AppTypography.sectionTitle,
+                  ),
                   const SizedBox(height: AppSpacing.s8),
                   Text(c.description, style: AppTypography.body),
                   const SizedBox(height: AppSpacing.s16),
-                  Text('Các hoạt động trọng tâm:', style: AppTypography.compactStrong),
+                  Text(
+                    'Các hoạt động trọng tâm:',
+                    style: AppTypography.compactStrong,
+                  ),
                   const SizedBox(height: AppSpacing.s8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 6,
-                    children: c.activities.map((act) => Chip(
-                      label: Text(act, style: AppTypography.compact),
-                      backgroundColor: AppColors.disabledSurface,
-                      side: BorderSide.none,
-                      padding: EdgeInsets.zero,
-                    )).toList(),
+                    children: c.activities
+                        .map(
+                          (act) => Chip(
+                            label: Text(act, style: AppTypography.compact),
+                            backgroundColor: AppColors.disabledSurface,
+                            side: BorderSide.none,
+                            padding: EdgeInsets.zero,
+                          ),
+                        )
+                        .toList(),
                   ),
                 ],
               ),
@@ -158,7 +188,11 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               XLandCard(
                 child: Row(
                   children: [
-                    const Icon(Icons.support_agent_rounded, size: 28, color: AppColors.brandPrimary),
+                    const Icon(
+                      Icons.support_agent_rounded,
+                      size: 28,
+                      color: AppColors.brandPrimary,
+                    ),
                     const SizedBox(width: AppSpacing.s12),
                     Expanded(
                       child: Column(
@@ -166,7 +200,10 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                         children: [
                           Text('Đội ngũ hỗ trợ', style: AppTypography.compact),
                           const SizedBox(height: 2),
-                          Text(c.supportRecipientLabel!, style: AppTypography.bodyStrong),
+                          Text(
+                            c.supportRecipientLabel!,
+                            style: AppTypography.bodyStrong,
+                          ),
                         ],
                       ),
                     ),
