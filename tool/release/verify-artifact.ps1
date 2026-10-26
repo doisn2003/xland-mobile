@@ -1,7 +1,7 @@
 param(
   [string]$ApkPath = 'build/app/outputs/flutter-apk/app-release.apk',
-  [string]$EvidencePath = '.local/northflank-apk-content.json',
-  [string]$ApiBaseUrl = 'https://p01--xland--y56gnzgzjsqm.code.run/api/v1'
+  [string]$EvidencePath = '.local/railway-apk-content.json',
+  [string]$ApiBaseUrl = 'https://xland-server-production.up.railway.app/api/v1'
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem

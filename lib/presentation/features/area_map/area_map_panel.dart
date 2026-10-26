@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../domain/maps/area_map.dart';
 import '../../theme/theme.dart';
+import 'area_map_canvas.dart';
 import 'area_map_cubit.dart';
 import 'area_map_scope.dart';
+
+export 'area_map_canvas.dart';
 
 typedef AreaMapBuilder = Widget Function(
   AreaMapPresentation map,
@@ -60,16 +62,6 @@ class AreaMapPanel extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Bản đồ khu vực', style: AppTypography.sectionTitle),
-              const SizedBox(height: AppSpacing.s8),
-              const Text(
-                'Khu vực tham khảo theo xã/phường; không thể hiện vị trí lô đất.',
-              ),
-              if (map?.areaLabel != null) ...[
-                const SizedBox(height: AppSpacing.s8),
-                Text(map!.areaLabel!, style: AppTypography.bodyStrong),
-              ],
-              const SizedBox(height: AppSpacing.s12),
               if (state.loading)
                 const SizedBox(
                   height: 240,
@@ -105,6 +97,7 @@ class AreaMapPanel extends StatelessWidget {
                   key: ValueKey((map!.propertyId, map.area!.id)),
                   map: map,
                   builder: mapBuilder,
+                  openLink: openLink,
                 ),
                 Wrap(
                   spacing: AppSpacing.s8,
@@ -130,15 +123,17 @@ class AreaMapPanel extends StatelessWidget {
                       OutlinedButton.icon(
                         onPressed: () => open(map!.externalDirectionsUrl!),
                         icon: const Icon(Icons.directions_outlined),
-                        label: const Text('Chỉ đường tới khu vực'),
+                        label: const Text('Chỉ đường'),
                       ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.s8),
-                Text(
-                  'Google Maps tìm theo tên xã/phường và tỉnh/thành. Điểm đến không phải vị trí lô đất hay điểm hẹn xem thực địa.',
-                  style: AppTypography.compact,
-                ),
+              ],
+              const SizedBox(height: AppSpacing.s16),
+              Text('Địa chỉ', style: AppTypography.sectionTitle),
+              if (map?.areaLabel != null) ...[
+                const SizedBox(height: AppSpacing.s8),
+                Text(map!.areaLabel!, style: AppTypography.bodyStrong),
               ],
             ],
           );
@@ -149,9 +144,15 @@ class AreaMapPanel extends StatelessWidget {
 }
 
 class _ObservedAreaMap extends StatefulWidget {
-  const _ObservedAreaMap({super.key, required this.map, this.builder});
+  const _ObservedAreaMap({
+    super.key,
+    required this.map,
+    this.builder,
+    this.openLink,
+  });
   final AreaMapPresentation map;
   final AreaMapBuilder? builder;
+  final AreaLinkLauncher? openLink;
   @override
   State<_ObservedAreaMap> createState() => _ObservedAreaMapState();
 }
@@ -206,7 +207,12 @@ class _ObservedAreaMapState extends State<_ObservedAreaMap> {
         key: ValueKey(_attempt),
         child:
             widget.builder?.call(widget.map, _loaded, _failed) ??
-            AreaMapCanvas(map: widget.map, onLoaded: _loaded, onError: _failed),
+            AreaMapCanvas(
+              map: widget.map,
+              onLoaded: _loaded,
+              onError: _failed,
+              openLink: widget.openLink,
+            ),
       ),
       if (_error != null) ...[
         Text(_error!, style: AppTypography.compact),
@@ -225,108 +231,4 @@ class _ObservedAreaMapState extends State<_ObservedAreaMap> {
       ],
     ],
   );
-}
-
-/// Administrative centre only: no property pin, GPS request or parcel boundary.
-class AreaMapCanvas extends StatefulWidget {
-  const AreaMapCanvas({
-    super.key,
-    required this.map,
-    required this.onLoaded,
-    required this.onError,
-    this.tileProvider,
-  });
-  final AreaMapPresentation map;
-  final VoidCallback onLoaded;
-  final ValueChanged<String> onError;
-  final TileProvider? tileProvider;
-  @override
-  State<AreaMapCanvas> createState() => _AreaMapCanvasState();
-}
-
-class _AreaMapCanvasState extends State<AreaMapCanvas> {
-  final _controller = MapController();
-  TileProvider? _tiles;
-  bool _reportedLoaded = false, _reportedError = false;
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _tiles ??= widget.tileProvider ?? AreaMapScope.tileProvider(context);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final area = widget.map.area!;
-    final center = LatLng(area.latitude, area.longitude);
-    return Column(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          child: SizedBox(
-            height: 300,
-            child: FlutterMap(
-              mapController: _controller,
-              options: MapOptions(
-                initialCenter: center,
-                initialZoom: area.initialZoom.toDouble(),
-                minZoom: 6,
-                maxZoom: 16,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: widget.map.tileUrlTemplate,
-                  tileProvider: _tiles,
-                  userAgentPackageName: 'vn.xland.xland_mobile',
-                  maxZoom: 16,
-                  maxNativeZoom: 16,
-                  panBuffer: 0,
-                  keepBuffer: 1,
-                  errorTileCallback: (_, _, _) {
-                    if (_reportedError) return;
-                    _reportedError = true;
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) {
-                        widget.onError(
-                          'Một phần bản đồ chưa tải được hoặc đã đạt hạn mức trong ngày. Bạn có thể thử lại hoặc mở Google Maps.',
-                        );
-                      }
-                    });
-                  },
-                  tileBuilder: (_, tile, image) {
-                    if (!_reportedLoaded &&
-                        image.loadFinishedAt != null &&
-                        !image.loadError) {
-                      _reportedLoaded = true;
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) widget.onLoaded();
-                      });
-                    }
-                    return tile;
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            onPressed: () =>
-                _controller.move(center, area.initialZoom.toDouble()),
-            icon: const Icon(Icons.center_focus_strong),
-            label: const Text('Về khu vực'),
-          ),
-        ),
-      ],
-    );
-  }
 }

@@ -1,5 +1,8 @@
 # Chạy mobile với Northflank
 
+> Backend hiện tại đã trở về Railway ngày 26/10/2026; xem [hướng dẫn mới](RAILWAY.md).
+> Cấu hình Northflank dưới đây được giữ làm lựa chọn rollback.
+
 Backend tạm thay Railway từ 22/10/2026:
 `https://p01--xland--y56gnzgzjsqm.code.run/api/v1`.
 Database, tài khoản, Storage và dữ liệu hiện có dùng tiếp Supabase của dự án.

@@ -319,7 +319,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      for (final text in ['Mở Google Maps', 'Chỉ đường tới khu vực']) {
+      for (final text in ['Mở Google Maps', 'Chỉ đường']) {
         await tester.ensureVisible(find.text(text));
         await tester.tap(find.text(text));
         await tester.pumpAndSettle();

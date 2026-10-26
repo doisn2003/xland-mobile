@@ -56,8 +56,6 @@ class AreaInfoTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (mapVisible) AreaMapPanel(propertyId: areaInfo.propertyId),
-          const SizedBox(height: AppSpacing.s20),
           // 3 POI Segments
           const DesignSectionTitle(
             'Tiện ích trong khu vực',
@@ -215,6 +213,10 @@ class AreaInfoTab extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
+          if (mapVisible) ...[
+            const SizedBox(height: AppSpacing.s24),
+            AreaMapPanel(propertyId: areaInfo.propertyId),
+          ],
         ],
       ),
     );

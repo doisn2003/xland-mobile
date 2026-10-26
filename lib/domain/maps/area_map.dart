@@ -38,6 +38,48 @@ final class MapAttribution {
   final Uri url;
 }
 
+enum PlanningAvailability { ready, unconfigured, unavailable }
+
+final class PlanningBounds {
+  const PlanningBounds(this.south, this.west, this.north, this.east);
+  final double south, west, north, east;
+}
+
+final class PlanningSource {
+  const PlanningSource({
+    required this.label,
+    required this.sourceUrl,
+    required this.revision,
+    required this.tileUrlTemplate,
+    required this.minZoom,
+    required this.maxNativeZoom,
+    this.legendUrl,
+    this.publishedAt,
+    this.coverageBounds,
+  });
+  final String label, revision, tileUrlTemplate;
+  final Uri sourceUrl;
+  final Uri? legendUrl;
+  final int minZoom, maxNativeZoom;
+  final DateTime? publishedAt;
+  final PlanningBounds? coverageBounds;
+}
+
+/// Null on AreaMapPresentation means the property is outside the supported regions.
+final class PlanningOverlay {
+  const PlanningOverlay({
+    required this.availability,
+    required this.region,
+    required this.notice,
+    this.source,
+  });
+  final PlanningAvailability availability;
+  final String region, notice;
+  final PlanningSource? source;
+  bool get isReady =>
+      availability == PlanningAvailability.ready && source != null;
+}
+
 final class AreaMapPresentation {
   const AreaMapPresentation({
     required this.propertyId,
@@ -50,6 +92,7 @@ final class AreaMapPresentation {
     this.tileUrlTemplate,
     this.areaLabel,
     this.attributions = const [],
+    this.planning,
   });
   final String propertyId;
   final AreaMapAvailability availability;
@@ -61,6 +104,7 @@ final class AreaMapPresentation {
   final String? tileUrlTemplate;
   final String? areaLabel;
   final List<MapAttribution> attributions;
+  final PlanningOverlay? planning;
   bool get isReady =>
       availability == AreaMapAvailability.ready &&
       area != null &&

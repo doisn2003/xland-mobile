@@ -1362,7 +1362,7 @@ class FakeAccountRepository implements AccountRepository {
         contactVerified: true,
         updatedAt: DateTime.utc(2026, 10, 15),
       ),
-      expiresAt: DateTime.utc(2026, 10, 22),
+      expiresAt: DateTime.now().toUtc().add(const Duration(days: 1)),
     );
     _currentSession = session;
     return session;

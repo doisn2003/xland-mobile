@@ -10,7 +10,8 @@ val releaseKeyFile = rootProject.file("key.properties")
 val releaseKeys = Properties().apply {
     if (releaseKeyFile.exists()) releaseKeyFile.inputStream().use { load(it) }
 }
-if (gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }) {
+val internalDebugSigning = providers.gradleProperty("xlandInternalDebugSigning").orNull == "true"
+if (internalDebugSigning || gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }) {
     require(releaseKeyFile.exists()) { "Release signing missing: provision private android/key.properties first." }
     for (field in listOf("storeFile", "storePassword", "keyAlias", "keyPassword")) {
         require(!releaseKeys.getProperty(field).isNullOrBlank()) { "Release signing configuration is incomplete." }
@@ -31,7 +32,7 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "vn.xland.xland_mobile"
         manifestPlaceholders["xlandShareHost"] = providers.gradleProperty("xlandShareHost")
-            .getOrElse("p01--xland--y56gnzgzjsqm.code.run")
+            .getOrElse("xland-server-production.up.railway.app")
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -63,6 +64,11 @@ android {
 
     buildTypes {
         debug {
+            // Opt-in for the internal development run: update the installed pilot
+            // without uninstalling it, while retaining the debug VM/hot reload.
+            if (internalDebugSigning) {
+                signingConfig = signingConfigs.getByName("internalRelease")
+            }
             // Explicit C platform-proof build: separate sandbox/session from users.
             if (providers.gradleProperty("xlandNativeProof").orNull == "true") {
                 applicationIdSuffix = ".cproof"

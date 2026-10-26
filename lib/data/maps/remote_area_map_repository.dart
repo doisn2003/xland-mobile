@@ -177,7 +177,101 @@ AreaMapPresentation mapAreaPresentation(
     externalAreaMapUrl: external,
     externalDirectionsUrl: directions,
     attributions: List.unmodifiable(credits),
+    planning: _planning(
+      data['planning'],
+      tileUrl == null ? null : apiBaseUrl.origin,
+    ),
   );
+}
+
+// Optional capability: malformed planning metadata never breaks the Geoapify map.
+PlanningOverlay? _planning(Object? raw, String? origin) {
+  if (raw == null) {
+    return null; // Backward compatible with older API deployments.
+  }
+  String? region;
+  try {
+    final data = _object(raw);
+    if (data['availability'] == 'not_supported') return null;
+    final value = _string(data['region']);
+    if (!{'ha-noi', 'hai-phong'}.contains(value)) return null;
+    region = value;
+    final availability = switch (_string(data['availability'])) {
+      'ready' => PlanningAvailability.ready,
+      'unconfigured' => PlanningAvailability.unconfigured,
+      'unavailable' => PlanningAvailability.unavailable,
+      _ => throw const FormatException('Invalid planning status'),
+    };
+    final notice = _string(data['notice']);
+    if (availability != PlanningAvailability.ready) {
+      if (data['source'] != null) {
+        throw const FormatException('Inactive planning source');
+      }
+      return PlanningOverlay(
+        availability: availability,
+        region: region,
+        notice: notice,
+      );
+    }
+    if (origin == null) {
+      throw const FormatException('Planning needs a base map');
+    }
+    final source = _object(data['source']);
+    final revision = _string(source['revision']);
+    final minZoom = _integer(source['minZoom']);
+    final maxZoom = _integer(source['maxNativeZoom']);
+    final path = '/maps/planning/$region/$revision/{z}/{x}/{y}.png';
+    if (!RegExp(r'^[a-z0-9][a-z0-9-]{0,63}$').hasMatch(revision) ||
+        source['tilePathTemplate'] != path ||
+        minZoom < 6 ||
+        maxZoom > 19 ||
+        minZoom > maxZoom) {
+      throw const FormatException('Invalid planning tiles');
+    }
+    PlanningBounds? bounds;
+    if (source['coverageBounds'] != null) {
+      final rawBounds = source['coverageBounds'];
+      if (rawBounds is! List<Object?> || rawBounds.length != 4) {
+        throw const FormatException('Invalid coverage bounds');
+      }
+      final b = rawBounds.map(_number).toList(growable: false);
+      if (b[0] < 8 ||
+          b[2] > 24 ||
+          b[1] < 102 ||
+          b[3] > 110 ||
+          b[0] >= b[2] ||
+          b[1] >= b[3]) {
+        throw const FormatException('Invalid coverage extent');
+      }
+      bounds = PlanningBounds(b[0], b[1], b[2], b[3]);
+    }
+    return PlanningOverlay(
+      availability: availability,
+      region: region,
+      notice: notice,
+      source: PlanningSource(
+        label: _string(source['label']),
+        sourceUrl: _https(source['sourceUrl']),
+        legendUrl: source['legendUrl'] == null
+            ? null
+            : _https(source['legendUrl']),
+        revision: revision,
+        tileUrlTemplate: '$origin$path',
+        minZoom: minZoom,
+        maxNativeZoom: maxZoom,
+        publishedAt: _date(source['publishedAt']),
+        coverageBounds: bounds,
+      ),
+    );
+  } on FormatException {
+    if (region == null) return null;
+    return PlanningOverlay(
+      availability: PlanningAvailability.unavailable,
+      region: region,
+      notice:
+          'Chưa tải được cấu hình lớp quy hoạch. Bản đồ nền vẫn sử dụng được.',
+    );
+  }
 }
 
 Map<String, Object?> _object(Object? value) {

@@ -119,9 +119,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.text(
-            'Khu vực tham khảo theo xã/phường; không thể hiện vị trí lô đất.',
-          ),
+          find.text('Địa chỉ'),
           findsOneWidget,
         );
         expect(find.text('Bán kính: 1000m'), findsNothing);

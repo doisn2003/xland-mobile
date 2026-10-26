@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Xland Local" type="FlutterRunConfigurationType" factoryName="Flutter">
+    <option name="additionalArgs" value="--debug --dart-define=XLAND_API_BASE_URL=http://10.0.2.2:3002/api/v1 --dart-define=XLAND_SHARE_HOST=xland-server-production.up.railway.app --android-project-arg=xlandShareHost=xland-server-production.up.railway.app --android-project-arg=xlandInternalDebugSigning=true --dart-define-from-file=.local/auth/google-client.json" />
+    <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
+    <method v="2" />
+  </configuration>
+</component>
