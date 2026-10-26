@@ -42,6 +42,9 @@ class FinancePlanTabState extends State<FinancePlanTab> {
   int _termYears = 20; // 240 months
   double _annualRate = 9.0; // 9.0%/year
   RepaymentMethod _method = RepaymentMethod.equalInstallment;
+  static const _presetTerms = [5, 10, 15, 20, 25];
+  bool _isCustomTerm = false;
+  late final TextEditingController _customTermController;
 
   FinanceResult? _result;
   bool _isCalculating = false;
@@ -72,10 +75,17 @@ class FinancePlanTabState extends State<FinancePlanTab> {
   @override
   void initState() {
     super.initState();
+    _customTermController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculate();
       _loadSavedPlans();
     });
+  }
+
+  @override
+  void dispose() {
+    _customTermController.dispose();
+    super.dispose();
   }
 
   @override
@@ -312,8 +322,8 @@ class FinancePlanTabState extends State<FinancePlanTab> {
       }
 
       final label = _method == RepaymentMethod.equalInstallment
-          ? 'Kế hoạch vay ${(_loanRatio * 100).toInt()}% - $_termYears năm (Gốc & lãi chia đều)'
-          : 'Kế hoạch vay ${(_loanRatio * 100).toInt()}% - $_termYears năm (Dư nợ giảm dần)';
+          ? 'Kế hoạch vay ${(_loanRatio * 100).round()}% - $_termYears năm (Gốc & lãi chia đều)'
+          : 'Kế hoạch vay ${(_loanRatio * 100).round()}% - $_termYears năm (Dư nợ giảm dần)';
 
       await deps.finance.savePlan(
         label,
@@ -494,17 +504,18 @@ class FinancePlanTabState extends State<FinancePlanTab> {
 
                 // Loan ratio selector
                 Text(
-                  'Tỷ lệ vay: ${(_loanRatio * 100).toInt()}% (${prop != null ? _formatVnd(Vnd(((prop.priceTotal.amount * BigInt.from((_loanRatio * 100).round())) ~/ BigInt.from(100)).toString())) : ""})',
+                  'Tỷ lệ vay: ${(_loanRatio * 100).round()}% (${prop != null ? _formatVnd(Vnd(((prop.priceTotal.amount * BigInt.from((_loanRatio * 100).round())) ~/ BigInt.from(100)).toString())) : ""})',
                   style: AppTypography.bodyStrong,
                 ),
                 Slider(
                   value: _loanRatio,
                   min: 0.1,
                   max: 0.8,
-                  divisions: 7, // 10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%
+                  divisions: 70, // 1% steps: 10%, 11%, ..., 80%
                   activeColor: AppColors.brandPrimary,
                   onChanged: (val) {
-                    setState(() => _loanRatio = val);
+                    final rounded = (val * 100).round() / 100.0;
+                    setState(() => _loanRatio = rounded);
                     _calculate();
                   },
                 ),
@@ -516,27 +527,106 @@ class FinancePlanTabState extends State<FinancePlanTab> {
                 Wrap(
                   spacing: AppSpacing.s8,
                   runSpacing: AppSpacing.s8,
-                  children: [5, 10, 15, 20, 25].map((y) {
-                    final isSel = _termYears == y;
-                    return ChoiceChip(
-                      label: Text('$y năm (${y * 12} th)'),
-                      selected: isSel,
+                  children: [
+                    ..._presetTerms.map((y) {
+                      final isSel = !_isCustomTerm && _termYears == y;
+                      return ChoiceChip(
+                        label: Text('$y năm (${y * 12} th)'),
+                        selected: isSel,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() {
+                              _isCustomTerm = false;
+                              _termYears = y;
+                            });
+                            _calculate();
+                          }
+                        },
+                        selectedColor: AppColors.brandPrimary,
+                        labelStyle: TextStyle(
+                          color: isSel
+                              ? AppColors.onPrimary
+                              : AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                    }),
+                    ChoiceChip(
+                      label: Text(
+                        _isCustomTerm && !_presetTerms.contains(_termYears)
+                            ? 'Khác: $_termYears năm'
+                            : 'Khác',
+                      ),
+                      selected: _isCustomTerm,
                       onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _termYears = y);
+                        setState(() {
+                          _isCustomTerm = true;
+                          if (_customTermController.text.isEmpty) {
+                            _customTermController.text = _termYears.toString();
+                          }
+                        });
+                        final parsed =
+                            int.tryParse(_customTermController.text.trim());
+                        if (parsed != null && parsed >= 1 && parsed <= 35) {
+                          _termYears = parsed;
                           _calculate();
                         }
                       },
                       selectedColor: AppColors.brandPrimary,
                       labelStyle: TextStyle(
-                        color: isSel
+                        color: _isCustomTerm
                             ? AppColors.onPrimary
                             : AppColors.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  ],
                 ),
+                if (_isCustomTerm) ...[
+                  const SizedBox(height: AppSpacing.s12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _customTermController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Số năm vay tự nhập (1 - 35 năm)',
+                            hintText: 'Nhập số năm (ví dụ: 12)',
+                            suffixText: 'năm',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.input,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.s12,
+                              vertical: AppSpacing.s12,
+                            ),
+                          ),
+                          onChanged: (val) {
+                            final parsed = int.tryParse(val.trim());
+                            if (parsed != null && parsed >= 1 && parsed <= 35) {
+                              setState(() => _termYears = parsed);
+                              _calculate();
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.s12),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 14),
+                        child: Text(
+                          '${_termYears * 12} tháng',
+                          style: AppTypography.bodyStrong.copyWith(
+                            color: AppColors.brandPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.s16),
 
                 // Annual rate
@@ -548,10 +638,11 @@ class FinancePlanTabState extends State<FinancePlanTab> {
                   value: _annualRate,
                   min: 5.0,
                   max: 15.0,
-                  divisions: 20,
+                  divisions: 100, // 0.1% steps: 5.0%, 5.1%, ..., 15.0%
                   activeColor: AppColors.brandPrimary,
                   onChanged: (val) {
-                    setState(() => _annualRate = val);
+                    final rounded = (val * 10).round() / 10.0;
+                    setState(() => _annualRate = rounded);
                     _calculate();
                   },
                 ),
@@ -915,7 +1006,7 @@ class FinancePlanTabState extends State<FinancePlanTab> {
                     ),
                     const SizedBox(height: AppSpacing.s8),
                     Text(
-                      'Chuyên viên tài chính sẽ kết nối ngân hàng đối tác phù hợp với tỷ lệ vay ${(_loanRatio * 100).toInt()}% và thời hạn $_termYears năm.',
+                      'Chuyên viên tài chính sẽ kết nối ngân hàng đối tác phù hợp với tỷ lệ vay ${(_loanRatio * 100).round()}% và thời hạn $_termYears năm.',
                       style: AppTypography.compact.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -996,7 +1087,7 @@ class FinancePlanTabState extends State<FinancePlanTab> {
                                   kind: SupportKind.loanAdvice,
                                   propertyId: widget.property?.id,
                                   message:
-                                      'Yêu cầu tư vấn vay ${(_loanRatio * 100).toInt()}% ($_termYears năm, ${_method == RepaymentMethod.equalInstallment ? "gốc lãi đều" : "dư nợ giảm dần"})',
+                                      'Yêu cầu tư vấn vay ${(_loanRatio * 100).round()}% ($_termYears năm, ${_method == RepaymentMethod.equalInstallment ? "gốc lãi đều" : "dư nợ giảm dần"})',
                                   contactName: name,
                                   contactPhone: phone,
                                   consentToShareContact: consent,

@@ -262,5 +262,43 @@ void main() {
         expect(find.text('Đăng nhập để lưu kế hoạch'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'S05 custom loan term "Khác" shows input and updates calculation',
+      (tester) async {
+        final dependencies = createFakeDependencies();
+
+        await tester.pumpWidget(
+          _buildDetailHarness(dependencies: dependencies),
+        );
+        await tester.pumpAndSettle();
+
+        // Switch to S05 "Tài chính" tab
+        await tester.tap(find.text('Tài chính'));
+        await tester.pumpAndSettle();
+
+        // Scroll until "Khác" chip is visible
+        final customChip = find.text('Khác');
+        await tester.scrollUntilVisible(
+          customChip,
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(customChip);
+        await tester.pumpAndSettle();
+
+        // Custom input field should appear (second TextFormField on page, after disabled price field)
+        final customInput = find.byType(TextFormField).last;
+        expect(customInput, findsOneWidget);
+
+        // Enter 12 years
+        await tester.enterText(customInput, '12');
+        await tester.pumpAndSettle();
+
+        expect(find.text('144 tháng'), findsOneWidget);
+        expect(find.text('Khác: 12 năm'), findsOneWidget);
+      },
+    );
   });
 }
