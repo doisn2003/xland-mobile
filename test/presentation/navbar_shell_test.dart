@@ -30,14 +30,14 @@ void main() {
 
       expect(find.text('Trang chủ'), findsOneWidget);
       expect(find.text('Khám phá'), findsOneWidget);
-      expect(find.text('Giao dịch'), findsOneWidget);
+      expect(find.text('Sự kiện'), findsOneWidget);
       expect(find.text('Tôi'), findsOneWidget);
 
       await tester.tap(find.text('Khám phá'));
       await tester.pump();
       expect(selected, 1);
 
-      await tester.tap(find.text('Giao dịch'));
+      await tester.tap(find.text('Sự kiện'));
       await tester.pump();
       expect(selected, 2);
 
@@ -65,11 +65,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Tab Khám phá (S01/S09) — UI Foundation Phase 1. Các lô đất hiển thị dạng placeholder chuẩn.'), findsOneWidget);
 
-      // Switch to Tab 2: Giao dịch
-      await tester.tap(find.text('Giao dịch'));
+      // Switch to Tab 2: Sự kiện
+      await tester.tap(find.text('Sự kiện'));
       await tester.pumpAndSettle();
-      expect(find.text('Lịch sử đặt lịch thực địa'), findsOneWidget);
-      expect(find.text('Tính năng sắp ra mắt'), findsOneWidget);
+      expect(find.text('Sự kiện XLand'), findsOneWidget);
 
       // Switch to Tab 3: Tôi
       await tester.tap(find.text('Tôi'));

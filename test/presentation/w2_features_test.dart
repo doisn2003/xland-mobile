@@ -9,6 +9,7 @@ import 'package:xland_mobile/presentation/features/consultant/pages/consultant_p
 import 'package:xland_mobile/presentation/features/events/pages/event_detail_page.dart';
 import 'package:xland_mobile/presentation/features/property_detail/widgets/finance_plan_tab.dart';
 import 'package:xland_mobile/presentation/features/shell/main_navigation_shell.dart';
+import 'package:xland_mobile/presentation/features/booking/pages/booking_history_page.dart';
 import 'package:xland_mobile/presentation/shared/di/dependencies_scope.dart';
 import 'package:xland_mobile/presentation/theme/app_theme.dart';
 
@@ -409,8 +410,8 @@ void main() {
     });
   });
 
-  group('W2 B4: Transaction History in MainNavigationShell Tab 2', () {
-    testWidgets('Guest sees login notice in transaction tab without hardcoded card', (tester) async {
+  group('W2 B4: Events Tab 2 & Dedicated BookingHistoryPage', () {
+    testWidgets('Tab 2 renders Sự kiện placeholder', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -428,16 +429,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Giao dịch tab
-      expect(find.text('Lịch sử đặt lịch thực địa'), findsOneWidget);
-      expect(find.text('Vui lòng đăng nhập để xem danh sách lịch hẹn khảo sát thực địa của bạn.'), findsOneWidget);
-      expect(find.text('Đăng nhập ngay'), findsOneWidget);
-
-      // Hardcoded mock card #XL-BK-8821 is gone!
-      expect(find.text('#XL-BK-8821'), findsNothing);
+      expect(find.text('Sự kiện'), findsWidgets);
+      expect(find.text('Sự kiện XLand'), findsOneWidget);
+      expect(find.text('Tính năng sự kiện đang được hoàn thiện và sẽ sớm ra mắt.'), findsOneWidget);
     });
 
-    testWidgets('Authenticated user sees real bookings from repository', (tester) async {
+    testWidgets('Guest sees login notice in BookingHistoryPage', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -446,7 +443,29 @@ void main() {
       });
 
       final deps = createFakeDependencies();
-      // Pre-create booking in repository
+      await tester.pumpWidget(
+        _buildTestApp(
+          child: const BookingHistoryPage(),
+          deps: deps,
+          initialAuth: const AuthGuest(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lịch sử đặt lịch thực địa'), findsOneWidget);
+      expect(find.text('Vui lòng đăng nhập để xem danh sách lịch hẹn khảo sát thực địa của bạn.'), findsOneWidget);
+      expect(find.text('Đăng nhập ngay'), findsOneWidget);
+    });
+
+    testWidgets('Authenticated user sees real bookings in BookingHistoryPage', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final deps = createFakeDependencies();
       await deps.bookings.create(
         BookingInput(
           propertyId: '00000000-0000-4000-8000-000000000005',
@@ -473,7 +492,7 @@ void main() {
 
       await tester.pumpWidget(
         _buildTestApp(
-          child: const MainNavigationShell(initialIndex: 2),
+          child: const BookingHistoryPage(),
           deps: deps,
           initialAuth: AuthAuthenticated(session),
         ),

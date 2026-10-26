@@ -6,7 +6,7 @@ import 'package:xland_mobile/domain/xland_domain.dart';
 import 'package:xland_mobile/presentation/features/auth/cubit/auth_cubit.dart';
 import 'package:xland_mobile/presentation/features/auth/cubit/auth_state.dart';
 import 'package:xland_mobile/presentation/features/booking/pages/booking_sheet.dart';
-import 'package:xland_mobile/presentation/features/shell/main_navigation_shell.dart';
+import 'package:xland_mobile/presentation/features/booking/pages/booking_history_page.dart';
 import 'package:xland_mobile/presentation/shared/di/dependencies_scope.dart';
 import 'package:xland_mobile/presentation/shared/widgets/widgets.dart';
 import 'package:xland_mobile/presentation/theme/theme.dart';
@@ -182,7 +182,7 @@ void main() {
 
       await tester.pumpWidget(
         _buildTestApp(
-          child: const MainNavigationShell(initialIndex: 2),
+          child: const BookingHistoryPage(),
           deps: deps,
           authCubit: auth,
         ),
@@ -254,7 +254,7 @@ void main() {
 
       await tester.pumpWidget(
         _buildTestApp(
-          child: const MainNavigationShell(initialIndex: 2),
+          child: const BookingHistoryPage(),
           deps: deps,
           authCubit: auth,
         ),

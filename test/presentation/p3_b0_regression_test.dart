@@ -6,7 +6,7 @@ import 'package:xland_mobile/domain/xland_domain.dart';
 import 'package:xland_mobile/presentation/features/account/pages/settings_page.dart';
 import 'package:xland_mobile/presentation/features/auth/cubit/auth_cubit.dart';
 import 'package:xland_mobile/presentation/features/feed/widgets/video_player_item.dart';
-import 'package:xland_mobile/presentation/features/shell/main_navigation_shell.dart';
+import 'package:xland_mobile/presentation/features/booking/pages/booking_history_page.dart';
 import 'package:xland_mobile/presentation/shared/di/dependencies_scope.dart';
 import 'package:xland_mobile/presentation/shared/widgets/widgets.dart';
 import 'package:xland_mobile/presentation/theme/theme.dart';
@@ -67,7 +67,7 @@ void main() {
             value: auth,
             child: MaterialApp(
               theme: AppTheme.lightTheme,
-              home: const MainNavigationShell(initialIndex: 2),
+              home: const BookingHistoryPage(),
             ),
           ),
         ),
@@ -138,7 +138,7 @@ void main() {
             value: auth,
             child: MaterialApp(
               theme: AppTheme.lightTheme,
-              home: const MainNavigationShell(initialIndex: 2),
+              home: const BookingHistoryPage(),
             ),
           ),
         ),
@@ -206,7 +206,7 @@ void main() {
             value: auth,
             child: MaterialApp(
               theme: AppTheme.lightTheme,
-              home: const MainNavigationShell(initialIndex: 2),
+              home: const BookingHistoryPage(),
             ),
           ),
         ),
@@ -236,8 +236,8 @@ void main() {
       expect(historyRepo.pending.length, countBeforeLoadMore + 1);
       final pendingLoadMore = historyRepo.pending.last;
 
-      // While loadMore is pending, trigger refresh by tapping Giao dịch tab in bottom nav
-      await tester.tap(find.descendant(of: find.byType(XLandBottomNavBar), matching: find.text('Giao dịch')));
+      // While loadMore is pending, trigger refresh via pull-to-refresh
+      await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
       for (var i = 0; i < 4; i++) {
         await tester.pump(const Duration(milliseconds: 50));
       }

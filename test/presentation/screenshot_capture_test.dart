@@ -363,7 +363,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('Giao dịch'), findsAtLeast(1));
+        expect(find.text('Sự kiện'), findsAtLeast(1));
         await saveRepaint(historyRootKey, 'history-tab2');
 
         // 12. Tab 3 Profile in MainNavigationShell

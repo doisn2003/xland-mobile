@@ -4,7 +4,7 @@ import '../../theme/theme.dart';
 /// Standard 4-tab Bottom Navigation Bar according to BUSINESS.md v1.0 and DESIGN_SPEC.md v1.2:
 /// 1. Trang chủ (Video feed)
 /// 2. Khám phá (Discovery / Listing)
-/// 3. Giao dịch (Transactions & Visit booking history)
+/// 3. Sự kiện (Events)
 /// 4. Tôi (Profile & Settings)
 class XLandBottomNavBar extends StatelessWidget {
   const XLandBottomNavBar({
@@ -49,9 +49,9 @@ class XLandBottomNavBar extends StatelessWidget {
               ),
               _buildNavItem(
                 index: 2,
-                label: 'Giao dịch',
-                icon: Icons.receipt_long_outlined,
-                selectedIcon: Icons.receipt_long_rounded,
+                label: 'Sự kiện',
+                icon: Icons.event_outlined,
+                selectedIcon: Icons.event_rounded,
               ),
               _buildNavItem(
                 index: 3,

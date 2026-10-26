@@ -5,8 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/xland_domain.dart';
 import '../../app/xland_app.dart';
 import '../../shared/di/dependencies_scope.dart';
-import '../../shared/utils/timezone_utils.dart';
-import '../../shared/utils/value_formatters.dart';
 import '../../shared/widgets/widgets.dart';
 import '../../theme/theme.dart';
 import '../account/pages/edit_profile_page.dart';
@@ -15,7 +13,7 @@ import '../account/pages/settings_page.dart';
 import '../auth/cubit/auth_cubit.dart';
 import '../auth/cubit/auth_state.dart';
 import '../auth/pages/login_page.dart';
-import '../booking/pages/booking_detail_page.dart';
+import '../booking/pages/booking_history_page.dart';
 import '../booking/pages/booking_sheet.dart';
 import '../discovery/pages/discovery_page.dart';
 import '../discovery/widgets/property_filter_sheet.dart';
@@ -24,12 +22,12 @@ import '../feed/pages/saved_videos_page.dart';
 import '../feed/widgets/video_player_item.dart';
 import '../feed/cubit/video_like_cubit.dart';
 import '../property_detail/pages/property_detail_page.dart';
-import '../transactions/widgets/transaction_nft_hero.dart';
+import '../events/pages/events_tab_page.dart';
 
 /// Main navigation shell holding the 4 core tabs of XLand:
 /// 0. Trang chủ (Feed video ngắn)
 /// 1. Khám phá (Discovery / Listing)
-/// 2. Giao dịch (Lịch sử thực địa & Giới thiệu NFT)
+/// 2. Sự kiện (Tạm thời bỏ trống)
 /// 3. Tôi (Hồ sơ cá nhân & Cài đặt)
 class MainNavigationShell extends StatefulWidget {
   const MainNavigationShell({
@@ -52,10 +50,6 @@ class _MainNavigationShellState extends State<MainNavigationShell>
   late int _currentIndex;
   bool _isAppActive = true;
   bool _isRouteCovered = false;
-  final _transactionsScrollController = ScrollController();
-  final _bookingHistoryAnchor = GlobalKey();
-  double _transactionHeroExtent = 0;
-  bool _transactionHeroVisible = true;
 
   bool _feedAutoplay = true;
   bool _feedMutedByDefault = false;
@@ -72,14 +66,6 @@ class _MainNavigationShellState extends State<MainNavigationShell>
   int _activeFeedIndex = 0;
   FeedScope _feedScope = FeedScope.recommended;
 
-  List<Booking> _bookingHistory = [];
-  String? _bookingCursor;
-  bool _hasMoreBookings = false;
-  bool _isLoadingBookings = false;
-  bool _isLoadingMoreBookings = false;
-  String? _bookingHistoryError;
-
-  int _bookingEpoch = 0;
   int _feedEpoch = 0;
   int _settingsEpoch = 0;
 
@@ -88,12 +74,8 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     super.initState();
     _currentIndex = widget.initialIndex;
     WidgetsBinding.instance.addObserver(this);
-    _transactionsScrollController.addListener(_onTransactionsScrolled);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialFeed();
-      if (_currentIndex == 2) {
-        _loadInitialBookings();
-      }
     });
   }
 
@@ -102,11 +84,6 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     super.didUpdateWidget(oldWidget);
     if (widget.initialIndex != oldWidget.initialIndex) {
       _currentIndex = widget.initialIndex;
-      if (_currentIndex == 2 &&
-          _bookingHistory.isEmpty &&
-          !_isLoadingBookings) {
-        _loadInitialBookings();
-      }
     }
   }
 
@@ -132,7 +109,6 @@ class _MainNavigationShellState extends State<MainNavigationShell>
 
   @override
   void dispose() {
-    _transactionsScrollController.dispose();
     _clearFeedLikes();
     XLandApp.routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
@@ -270,151 +246,20 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     }
   }
 
-  Future<void> _loadInitialBookings({bool silent = false}) async {
-    final deps = DependenciesScope.maybeOf(context);
-    if (deps == null) return;
-    final currentEpoch = ++_bookingEpoch;
-    final currentTargetUserId = _lastUserId;
-
-    if (currentTargetUserId == null) {
-      if (mounted) {
-        setState(() {
-          _bookingHistory.clear();
-          _bookingCursor = null;
-          _hasMoreBookings = false;
-          _isLoadingBookings = false;
-          _isLoadingMoreBookings = false;
-          _bookingHistoryError = null;
-        });
-      }
-      return;
-    }
-
-    if (!silent) {
-      setState(() {
-        _isLoadingBookings = true;
-        _bookingHistoryError = null;
-      });
-    }
-    try {
-      final page = await deps.bookings.getHistory(const PageQuery(limit: 10));
-      if (!mounted ||
-          currentEpoch != _bookingEpoch ||
-          currentTargetUserId != _lastUserId) {
-        return;
-      }
-      setState(() {
-        _bookingHistory = List.of(page.items);
-        _bookingCursor = page.nextCursor;
-        _hasMoreBookings = page.hasMore;
-        _isLoadingBookings = false;
-        _bookingHistoryError = null;
-      });
-    } on XlandFailure catch (e) {
-      if (!mounted ||
-          currentEpoch != _bookingEpoch ||
-          currentTargetUserId != _lastUserId) {
-        return;
-      }
-      setState(() {
-        _bookingHistoryError = e.message;
-        _isLoadingBookings = false;
-      });
-    } catch (e) {
-      if (!mounted ||
-          currentEpoch != _bookingEpoch ||
-          currentTargetUserId != _lastUserId) {
-        return;
-      }
-      setState(() {
-        _bookingHistoryError = 'Không thể tải lịch sử: $e';
-        _isLoadingBookings = false;
-      });
-    }
-  }
-
-  Future<void> _loadMoreBookings() async {
-    if (_isLoadingMoreBookings || !_hasMoreBookings) return;
-    final deps = DependenciesScope.maybeOf(context);
-    if (deps == null) return;
-    final currentEpoch = _bookingEpoch;
-    final currentTargetUserId = _lastUserId;
-    if (currentTargetUserId == null) return;
-
-    setState(() => _isLoadingMoreBookings = true);
-    try {
-      final page = await deps.bookings.getHistory(
-        PageQuery(cursor: _bookingCursor, limit: 10),
-      );
-      if (!mounted ||
-          currentEpoch != _bookingEpoch ||
-          currentTargetUserId != _lastUserId) {
-        return;
-      }
-      final existingIds = _bookingHistory.map((b) => b.id).toSet();
-      final newItems = page.items
-          .where((b) => !existingIds.contains(b.id))
-          .toList();
-      setState(() {
-        _bookingHistory.addAll(newItems);
-        _bookingCursor = page.nextCursor;
-        _hasMoreBookings = page.hasMore;
-        _isLoadingMoreBookings = false;
-      });
-    } catch (e) {
-      if (!mounted ||
-          currentEpoch != _bookingEpoch ||
-          currentTargetUserId != _lastUserId) {
-        return;
-      }
-      setState(() => _isLoadingMoreBookings = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Không thể tải thêm lịch hẹn: $e'),
-          backgroundColor: AppColors.danger,
-        ),
-      );
-    }
-  }
-
   void _onTabTapped(int index) {
     if (_currentIndex != index) {
       setState(() {
         _currentIndex = index;
       });
-      if (index == 2 &&
-          _bookingHistory.isEmpty &&
-          !_isLoadingBookings &&
-          _lastUserId != null) {
-        _loadInitialBookings();
-      }
-    } else if (index == 2 && _lastUserId != null) {
-      _loadInitialBookings();
-    }
-  }
-
-  void _onTransactionsScrolled() {
-    final visible =
-        _transactionsScrollController.offset < _transactionHeroExtent;
-    if (visible != _transactionHeroVisible) {
-      setState(() => _transactionHeroVisible = visible);
     }
   }
 
   void _openBookingHistory() {
-    _onTabTapped(2);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final historyContext = _bookingHistoryAnchor.currentContext;
-      if (historyContext == null) return;
-      Scrollable.ensureVisible(
-        historyContext,
-        duration: MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
-      );
-    });
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const BookingHistoryPage(),
+      ),
+    );
   }
 
   @override
@@ -442,34 +287,14 @@ class _MainNavigationShellState extends State<MainNavigationShell>
       _isLoadingFeed = true;
       if (currentUserId == null) _feedScope = FeedScope.recommended;
       _settingsReady = false;
-      _bookingEpoch++;
-      _bookingHistory.clear();
-      _bookingCursor = null;
-      _hasMoreBookings = false;
-      _isLoadingBookings = false;
-      _isLoadingMoreBookings = false;
-      _bookingHistoryError = null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _loadInitialFeed();
-          if (_currentIndex == 2 && currentUserId != null) {
-            _loadInitialBookings();
-          }
         }
       });
     }
 
-    final isEdgeToEdge = _currentIndex == 0 || _currentIndex == 2;
-    final transactionOverlay =
-        (_transactionHeroVisible
-                ? SystemUiOverlayStyle.light
-                : SystemUiOverlayStyle.dark)
-            .copyWith(
-              statusBarColor: Colors.transparent,
-              systemStatusBarContrastEnforced: false,
-              systemNavigationBarColor: AppColors.surface,
-              systemNavigationBarIconBrightness: Brightness.dark,
-            );
+    final isEdgeToEdge = _currentIndex == 0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _currentIndex == 0
@@ -477,8 +302,6 @@ class _MainNavigationShellState extends State<MainNavigationShell>
               statusBarColor: Colors.transparent,
               systemNavigationBarColor: const Color(0xFF0C1514),
             )
-          : _currentIndex == 2
-          ? transactionOverlay
           : SystemUiOverlayStyle.dark,
       child: XLandScaffold(
         safeAreaTop: !isEdgeToEdge,
@@ -489,9 +312,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
           children: [
             hasDeps ? _buildDynamicFeedTab() : _buildFeedTab(),
             hasDeps ? const DiscoveryPage() : _buildExploreTabPlaceholder(),
-            hasDeps
-                ? _buildDynamicTransactionsTab()
-                : _buildTransactionsTabPlaceholder(),
+            const EventsTabPage(),
             hasDeps ? _buildDynamicProfileTab() : _buildProfileTabPlaceholder(),
           ],
         ),
@@ -721,7 +542,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
               for (final item in [
                 (0, Icons.play_circle_outline, 'Trang chủ'),
                 (1, Icons.search, 'Khám phá'),
-                (2, Icons.event_note_outlined, 'Giao dịch'),
+                (2, Icons.event_outlined, 'Sự kiện'),
                 (3, Icons.person_outline, 'Tôi'),
               ])
                 ListTile(
@@ -890,7 +711,6 @@ class _MainNavigationShellState extends State<MainNavigationShell>
       context,
       propertyId: '00000000-0000-4000-8000-000000000005',
     );
-    if (mounted) _loadInitialBookings(silent: true);
   }
 
   /// Tab 1: Khám phá Placeholder (for backward compatibility tests)
@@ -1012,276 +832,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     );
   }
 
-  /// Tab 2: Dynamic Transactions Tab reading history from repository
-  Widget _buildDynamicTransactionsTab() {
-    final deps = DependenciesScope.of(context);
-    final authState = context.watch<AuthCubit>().state;
 
-    return _buildTransactionsLayout(
-      history: authState is! AuthAuthenticated
-          ? _buildBookingHistoryLogin()
-          : _buildBookingHistorySection(deps),
-    );
-  }
-
-  Widget _buildBookingHistoryLogin() {
-    return XLandCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const InfoNotice(
-            title: 'Tài khoản khách',
-            message: 'Vui lòng đăng nhập để xem danh sách lịch hẹn khảo sát thực địa của bạn.',
-            variant: NoticeVariant.info,
-          ),
-          const SizedBox(height: AppSpacing.s16),
-          PrimaryButton(
-            label: 'Đăng nhập ngay',
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute<void>(builder: (_) => const LoginPage())),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionsLayout({required Widget history}) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        _transactionHeroExtent = constraints.maxHeight;
-        final topInset = MediaQuery.viewPaddingOf(context).top;
-        return RefreshIndicator(
-          color: AppColors.brandPrimary,
-          edgeOffset: topInset,
-          onRefresh: () => _loadInitialBookings(silent: true),
-          child: SingleChildScrollView(
-            key: const PageStorageKey('transactions-scroll'),
-            controller: _transactionsScrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  height: _transactionHeroExtent,
-                  child: TransactionNftHero(
-                    active:
-                        _currentIndex == 2 &&
-                        _isAppActive &&
-                        !_isRouteCovered &&
-                        _transactionHeroVisible,
-                  ),
-                ),
-                Padding(
-                  key: _bookingHistoryAnchor,
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.pageGutter,
-                    topInset + AppSpacing.pageGutter,
-                    AppSpacing.pageGutter,
-                    AppSpacing.pageGutter,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight:
-                          (constraints.maxHeight -
-                                  topInset -
-                                  AppSpacing.pageGutter * 2)
-                              .clamp(0, double.infinity),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Lịch sử đặt lịch thực địa',
-                          style: AppTypography.sectionTitle,
-                        ),
-                        const SizedBox(height: AppSpacing.s12),
-                        history,
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBookingHistorySection(XlandDependencies deps) {
-    if (_isLoadingBookings && _bookingHistory.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.s32),
-          child: CircularProgressIndicator(color: AppColors.brandPrimary),
-        ),
-      );
-    }
-
-    if (_bookingHistoryError != null && _bookingHistory.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(AppSpacing.s12),
-        decoration: BoxDecoration(
-          color: AppColors.danger.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(AppRadius.card),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.error_outline_rounded, color: AppColors.danger),
-            const SizedBox(width: AppSpacing.s8),
-            Expanded(
-              child: Text(
-                'Không thể tải lịch sử: $_bookingHistoryError',
-                style: AppTypography.compact.copyWith(color: AppColors.danger),
-              ),
-            ),
-            TextButton(
-              onPressed: () => _loadInitialBookings(),
-              child: const Text('Thử lại'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_bookingHistory.isEmpty) {
-      return XLandCard(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s16),
-          child: Column(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 36,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(height: AppSpacing.s8),
-              Text(
-                'Bạn chưa có lịch hẹn thực địa nào.',
-                style: AppTypography.body.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        ..._bookingHistory.map<Widget>((Booking b) {
-          final statusText = switch (b.status) {
-            BookingStatus.awaitingDeposit => 'Chờ thanh toán cọc',
-            BookingStatus.pendingConfirmation => 'Chờ xác nhận',
-            BookingStatus.confirmed => 'Đã xác nhận',
-            BookingStatus.completed => 'Đã hoàn thành',
-            BookingStatus.cancelled => 'Đã hủy',
-            _ => 'Đang xử lý',
-          };
-          final statusVariant = switch (b.status) {
-            BookingStatus.confirmed => StatusBadgeVariant.verified,
-            BookingStatus.cancelled => StatusBadgeVariant.danger,
-            _ => StatusBadgeVariant.pending,
-          };
-
-          final timeStr = formatBusinessDateTime(
-            b.requestedStartsAt,
-            b.timeZone,
-          );
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-            child: XLandCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    spacing: AppSpacing.s8,
-                    runSpacing: AppSpacing.s8,
-                    children: [
-                      Tooltip(
-                        message: b.id,
-                        child: Text(
-                          'Mã: #${formatResourceReference(b.id)}',
-                          style: AppTypography.compactStrong,
-                        ),
-                      ),
-                      StatusBadge(text: statusText, variant: statusVariant),
-                    ],
-                  ),
-                  const Divider(height: AppSpacing.s16),
-                  Text(b.property.title, style: AppTypography.cardTitle),
-                  const SizedBox(height: AppSpacing.s4),
-                  Text('Thời gian: $timeStr', style: AppTypography.body),
-                  const SizedBox(height: AppSpacing.s4),
-                  Text(
-                    'Điểm đón: ${b.proposedMeetingArea.label}',
-                    style: AppTypography.compact,
-                  ),
-                  const SizedBox(height: AppSpacing.s12),
-                  Row(
-                    children: [
-                      StatusBadge(
-                        text: b.paymentStatus == PaymentStatus.unpaid
-                            ? 'Chờ thanh toán cọc'
-                            : b.paymentStatus == PaymentStatus.succeeded
-                            ? 'Đã đặt cọc'
-                            : 'Chờ xử lý',
-                        variant: b.paymentStatus == PaymentStatus.succeeded
-                            ? StatusBadgeVariant.verified
-                            : StatusBadgeVariant.pending,
-                      ),
-                      const Spacer(),
-                      OutlineButton(
-                        label: 'Chi tiết lịch',
-                        fullWidth: false,
-                        height: 36,
-                        onPressed: () {
-                          Navigator.of(context)
-                              .push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) =>
-                                      BookingDetailPage(bookingId: b.id),
-                                ),
-                              )
-                              .then((_) {
-                                if (mounted) _loadInitialBookings(silent: true);
-                              });
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-        if (_hasMoreBookings)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: _isLoadingMoreBookings
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.brandPrimary,
-                    ),
-                  )
-                : OutlineButton(
-                    label: 'Tải thêm lịch hẹn',
-                    onPressed: _loadMoreBookings,
-                  ),
-          ),
-      ],
-    );
-  }
-
-  /// Tab 2: Giao dịch Placeholder (for backward compatibility tests)
-  Widget _buildTransactionsTabPlaceholder() {
-    return _buildTransactionsLayout(history: _buildBookingHistoryLogin());
-  }
 
   /// Tab 3: Dynamic Profile tab wired with AuthCubit
   Widget _buildDynamicProfileTab() {

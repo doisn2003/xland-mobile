@@ -116,7 +116,7 @@ void main() {
         }
 
         // 1. Check all 4 shell tabs and verify CTA labels
-        for (final tab in ['Trang chủ', 'Khám phá', 'Giao dịch', 'Tôi']) {
+        for (final tab in ['Trang chủ', 'Khám phá', 'Sự kiện', 'Tôi']) {
           if (find.byType(XLandBottomNavBar).evaluate().isEmpty) {
             await tester.tap(find.byTooltip('Mở điều hướng'));
             await tester.pumpAndSettle();
@@ -130,7 +130,7 @@ void main() {
             checkFullLabels(['Xem chi tiết', 'Xem thực địa']);
             await capture('shell-cta');
           }
-          await capture('shell-${['Trang chủ', 'Khám phá', 'Giao dịch', 'Tôi'].indexOf(tab)}');
+          await capture('shell-${['Trang chủ', 'Khám phá', 'Sự kiện', 'Tôi'].indexOf(tab)}');
         }
 
         // 2. Open Component Gallery from Tab 3 (Tôi)
