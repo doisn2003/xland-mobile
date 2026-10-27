@@ -39,28 +39,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (username.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       setState(() {
-        _localError = 'Vui lòng nhập đầy đủ thông tin đăng ký.';
-      });
-      return;
-    }
-
-    if (username.length < 3 || username.length > 64) {
-      setState(() {
-        _localError = 'Tên đăng nhập phải có từ 3 đến 64 ký tự.';
-      });
-      return;
-    }
-
-    if (password.length < 8 || password.length > 128) {
-      setState(() {
-        _localError = 'Mật khẩu phải có từ 8 đến 128 ký tự.';
-      });
-      return;
-    }
-
-    if (password != confirmPassword) {
-      setState(() {
-        _localError = 'Mật khẩu xác nhận không trùng khớp.';
+        _localError = 'Không được để trống thông tin.';
       });
       return;
     }
@@ -133,7 +112,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ],
                 XLandTextField(
                   label: 'Tên đăng nhập',
-                  hint: 'Nhập tên đăng nhập (3-64 ký tự)',
+                  hint: 'Nhập tên đăng nhập',
                   controller: _usernameController,
                   prefixIcon: const Icon(
                     Icons.account_circle_outlined,
@@ -144,7 +123,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: AppSpacing.s16),
                 XLandTextField(
                   label: 'Mật khẩu',
-                  hint: 'Nhập mật khẩu (tối thiểu 8 ký tự)',
+                  hint: 'Nhập mật khẩu',
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   prefixIcon: const Icon(

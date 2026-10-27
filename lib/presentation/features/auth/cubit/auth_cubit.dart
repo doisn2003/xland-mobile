@@ -110,13 +110,8 @@ class AuthCubit extends Cubit<AuthState> {
     final epoch = ++_sessionEpoch;
     if (isClosed) return false;
     final cleanUsername = username.trim().toLowerCase();
-    if (cleanUsername.length < 3 || cleanUsername.length > 64) {
-      emit(const AuthError('Tên đăng nhập phải có từ 3 đến 64 ký tự.'));
-      return false;
-    }
-
-    if (password.length < 8 || password.length > 128) {
-      emit(const AuthError('Mật khẩu phải có từ 8 đến 128 ký tự.'));
+    if (cleanUsername.isEmpty || password.isEmpty) {
+      emit(const AuthError('Không được để trống thông tin.'));
       return false;
     }
 

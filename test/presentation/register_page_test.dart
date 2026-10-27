@@ -37,19 +37,12 @@ void main() {
     // Try submit empty
     await tester.tap(find.text('Đăng ký tài khoản'));
     await tester.pumpAndSettle();
-    expect(find.text('Vui lòng nhập đầy đủ thông tin đăng ký.'), findsOneWidget);
+    expect(find.text('Không được để trống thông tin.'), findsOneWidget);
 
-    // Enter mismatching passwords
+    // Enter credentials and submit
     final textFields = find.byType(TextField);
     await tester.enterText(textFields.at(0), 'newuser123');
     await tester.enterText(textFields.at(1), 'password123');
-    await tester.enterText(textFields.at(2), 'password999');
-    await tester.ensureVisible(find.text('Đăng ký tài khoản'));
-    await tester.tap(find.text('Đăng ký tài khoản'));
-    await tester.pumpAndSettle();
-    expect(find.text('Mật khẩu xác nhận không trùng khớp.'), findsOneWidget);
-
-    // Enter matching passwords and submit
     await tester.enterText(textFields.at(2), 'password123');
     await tester.ensureVisible(find.text('Đăng ký tài khoản'));
     await tester.tap(find.text('Đăng ký tài khoản'));
