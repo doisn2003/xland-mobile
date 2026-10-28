@@ -1,5 +1,9 @@
 # xland-mobile
 
+**Production 28/10/2026 — 0.2.6+9:** API Railway dùng chung với website user/admin.
+Xem [hướng dẫn build APK và IPA](docs/PRODUCTION_BUILD.md), gồm signing,
+Google OAuth, kiểm artifact và các đầu vào còn cần cho iOS.
+
 **Debug hiện tại — 26/10/2026:** backend trên PC, API dành cho Android Emulator
 `http://10.0.2.2:3002/api/v1`. Chạy `npm run dev:mobile` trong `xland-server`,
 rồi chọn **Xland Local → Pixel 9 Pro → Run/Debug** trong Android Studio.

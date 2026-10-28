@@ -4,6 +4,9 @@ import 'package:xland_mobile/domain/xland_domain.dart';
 /// Backed by canonical fixtures v0.1 with in-memory mutations and full filter logic.
 
 class FakePropertyRepository implements PropertyRepository {
+  @override
+  Future<Page<Property>> getChildren(String propertyId, PageQuery page) async =>
+      const Page(items: [], hasMore: false, total: 0);
   FakePropertyRepository({List<Property>? initialProperties}) {
     if (initialProperties != null) {
       _canonicalProperties.addAll(initialProperties);

@@ -48,6 +48,7 @@ class MainNavigationShell extends StatefulWidget {
 class _MainNavigationShellState extends State<MainNavigationShell>
     with WidgetsBindingObserver, RouteAware {
   late int _currentIndex;
+  bool _feedNavigationExpanded = false;
   bool _isAppActive = true;
   bool _isRouteCovered = false;
 
@@ -84,6 +85,7 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     super.didUpdateWidget(oldWidget);
     if (widget.initialIndex != oldWidget.initialIndex) {
       _currentIndex = widget.initialIndex;
+      _feedNavigationExpanded = false;
     }
   }
 
@@ -250,16 +252,15 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     if (_currentIndex != index) {
       setState(() {
         _currentIndex = index;
+        _feedNavigationExpanded = false;
       });
     }
   }
 
   void _openBookingHistory() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const BookingHistoryPage(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const BookingHistoryPage()));
   }
 
   @override
@@ -295,6 +296,9 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     }
 
     final isEdgeToEdge = _currentIndex == 0;
+    final navbar = _currentIndex != 0 || _feedNavigationExpanded
+        ? XLandBottomNavBar(currentIndex: _currentIndex, onTap: _onTabTapped)
+        : const SizedBox(width: double.infinity, height: 0);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _currentIndex == 0
@@ -305,23 +309,38 @@ class _MainNavigationShellState extends State<MainNavigationShell>
           : SystemUiOverlayStyle.dark,
       child: XLandScaffold(
         safeAreaTop: !isEdgeToEdge,
-        safeAreaBottom: _currentIndex != 0,
+        safeAreaBottom: false,
         backgroundColor: _currentIndex == 0 ? const Color(0xFF0C1514) : null,
-        body: IndexedStack(
-          index: _currentIndex,
+        body: Column(
           children: [
-            hasDeps ? _buildDynamicFeedTab() : _buildFeedTab(),
-            hasDeps ? const DiscoveryPage() : _buildExploreTabPlaceholder(),
-            const EventsTabPage(),
-            hasDeps ? _buildDynamicProfileTab() : _buildProfileTabPlaceholder(),
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: [
+                  hasDeps ? _buildDynamicFeedTab() : _buildFeedTab(),
+                  hasDeps
+                      ? const DiscoveryPage()
+                      : _buildExploreTabPlaceholder(),
+                  const EventsTabPage(),
+                  hasDeps
+                      ? _buildDynamicProfileTab()
+                      : _buildProfileTabPlaceholder(),
+                ],
+              ),
+            ),
+            // The navbar takes its own layout space, reducing the feed viewport
+            // throughout the animation instead of covering its controls.
+            if (MediaQuery.disableAnimationsOf(context))
+              navbar
+            else
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOutCubic,
+                alignment: Alignment.bottomCenter,
+                child: navbar,
+              ),
           ],
         ),
-        bottomNavigationBar: _currentIndex == 0
-            ? null
-            : XLandBottomNavBar(
-                currentIndex: _currentIndex,
-                onTap: _onTabTapped,
-              ),
       ),
     );
   }
@@ -423,7 +442,8 @@ class _MainNavigationShellState extends State<MainNavigationShell>
                           feedScope: _feedScope,
                           onScopeChanged: _changeFeedScope,
                           onFilterTap: _openFeedFilter,
-                          onNavigationTap: _showFeedNavigation,
+                          onNavigationTap: _toggleFeedNavigation,
+                          navigationExpanded: _feedNavigationExpanded,
                           isCurrent:
                               _currentIndex == 0 &&
                               _activeFeedIndex == index &&
@@ -455,10 +475,14 @@ class _MainNavigationShellState extends State<MainNavigationShell>
                   ),
                   const Spacer(),
                   IconButton(
-                    tooltip: 'Mở điều hướng',
-                    onPressed: _showFeedNavigation,
-                    icon: const Icon(
-                      Icons.keyboard_arrow_up,
+                    tooltip: _feedNavigationExpanded
+                        ? 'Ẩn thanh điều hướng'
+                        : 'Mở điều hướng',
+                    onPressed: _toggleFeedNavigation,
+                    icon: Icon(
+                      _feedNavigationExpanded
+                          ? Icons.keyboard_arrow_down
+                          : Icons.keyboard_arrow_up,
                       color: AppColors.feedGold,
                     ),
                   ),
@@ -515,50 +539,8 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     );
   }
 
-  Future<void> _showFeedNavigation() async {
-    final index = await showXLandBottomSheet<int>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: XLandLogo(),
-              ),
-              if (widget.onOpenGallery != null)
-                ListTile(
-                  leading: const Icon(Icons.widgets_outlined),
-                  title: const Text('Gallery'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.onOpenGallery!();
-                  },
-                ),
-              for (final item in [
-                (0, Icons.play_circle_outline, 'Trang chủ'),
-                (1, Icons.search, 'Khám phá'),
-                (2, Icons.event_outlined, 'Sự kiện'),
-                (3, Icons.person_outline, 'Tôi'),
-              ])
-                ListTile(
-                  leading: Icon(item.$2, color: AppColors.brandPrimary),
-                  title: Text(item.$3),
-                  trailing: item.$1 == _currentIndex
-                      ? const Icon(Icons.check, color: AppColors.goldDecorative)
-                      : null,
-                  onTap: () => Navigator.pop(context, item.$1),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (index != null && mounted) _onTabTapped(index);
+  void _toggleFeedNavigation() {
+    setState(() => _feedNavigationExpanded = !_feedNavigationExpanded);
   }
 
   /// Tab 0: Trang chủ (Feed video placeholder for forcePlaceholder mode)
@@ -570,10 +552,14 @@ class _MainNavigationShellState extends State<MainNavigationShell>
           showLogo: true,
           actions: [
             IconActionButton(
-              icon: Icons.keyboard_arrow_up,
-              semanticLabel: 'Mở điều hướng',
+              icon: _feedNavigationExpanded
+                  ? Icons.keyboard_arrow_down
+                  : Icons.keyboard_arrow_up,
+              semanticLabel: _feedNavigationExpanded
+                  ? 'Ẩn thanh điều hướng'
+                  : 'Mở điều hướng',
               foregroundColor: AppColors.onPrimary,
-              onPressed: _showFeedNavigation,
+              onPressed: _toggleFeedNavigation,
             ),
             if (widget.onOpenGallery != null)
               TextButton.icon(
@@ -832,8 +818,6 @@ class _MainNavigationShellState extends State<MainNavigationShell>
     );
   }
 
-
-
   /// Tab 3: Dynamic Profile tab wired with AuthCubit
   Widget _buildDynamicProfileTab() {
     return BlocBuilder<AuthCubit, AuthState>(
@@ -868,13 +852,27 @@ class _MainNavigationShellState extends State<MainNavigationShell>
                           CircleAvatar(
                             radius: 28,
                             backgroundColor: AppColors.verifiedSurface,
-                            child: Icon(
-                              isAuthenticated
-                                  ? Icons.person_rounded
-                                  : Icons.person_outline_rounded,
-                              size: 32,
-                              color: AppColors.brandPrimary,
-                            ),
+                            child: profile?.avatarUrl != null
+                                ? ClipOval(
+                                    child: Image.network(
+                                      profile!.avatarUrl.toString(),
+                                      width: 56,
+                                      height: 56,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => const Icon(
+                                        Icons.person_rounded,
+                                        size: 32,
+                                        color: AppColors.brandPrimary,
+                                      ),
+                                    ),
+                                  )
+                                : Icon(
+                                    isAuthenticated
+                                        ? Icons.person_rounded
+                                        : Icons.person_outline_rounded,
+                                    size: 32,
+                                    color: AppColors.brandPrimary,
+                                  ),
                           ),
                           const SizedBox(width: AppSpacing.s12),
                           Expanded(
@@ -883,7 +881,9 @@ class _MainNavigationShellState extends State<MainNavigationShell>
                               children: [
                                 Text(
                                   isAuthenticated
-                                      ? profile!.displayName
+                                      ? (profile!.displayName.isEmpty
+                                            ? 'Người dùng XLand'
+                                            : profile.displayName)
                                       : 'Khách hàng XLand',
                                   style: AppTypography.cardTitle,
                                 ),

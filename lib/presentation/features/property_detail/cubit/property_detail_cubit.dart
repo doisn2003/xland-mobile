@@ -134,6 +134,13 @@ class PropertyDetailCubit extends Cubit<PropertyDetailState> {
       if (isClosed) return;
       final current = state.property!;
       final updatedProperty = Property(
+        parentPropertyId: current.parentPropertyId,
+        communeCode: current.communeCode,
+        communeName: current.communeName,
+        addressDetail: current.addressDetail,
+        oldAddress: current.oldAddress,
+        hasSubplots: current.hasSubplots,
+        isCorner: current.isCorner,
         id: current.id,
         code: current.code,
         title: current.title,

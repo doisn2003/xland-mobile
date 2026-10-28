@@ -89,6 +89,7 @@ class FilterState {
       count++;
     }
     // 6. Budget / Price Range group (counted as 1 per C-3 & Decision A-03)
+    if (filter.communeCode?.isNotEmpty ?? false) count++;
     if (filter.minPriceVnd != null || filter.maxPriceVnd != null) count++;
     // 7. Area band group
     if (filter.areaBands.isNotEmpty) count++;

@@ -19,6 +19,7 @@ abstract interface class PropertyRepository {
   Future<int> count(PropertyFilter filter);
   Future<FilterCatalog> getFilterCatalog({String? provinceCode});
   Future<Property> getProperty(String propertyId);
+  Future<Page<Property>> getChildren(String propertyId, PageQuery page);
   Future<LegalSummary> getLegal(String propertyId);
   Future<DownloadGrant> requestDownload(String propertyId, String documentId);
   Future<AreaInfo> getArea(String propertyId, {AmenityCategory? category});

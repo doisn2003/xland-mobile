@@ -35,6 +35,7 @@ class VideoPlayerItem extends StatefulWidget {
     this.onScopeChanged,
     this.onFilterTap,
     this.onNavigationTap,
+    this.navigationExpanded = false,
     this.likeCubit,
   });
 
@@ -47,6 +48,7 @@ class VideoPlayerItem extends StatefulWidget {
   final ValueChanged<FeedScope>? onScopeChanged;
   final VoidCallback? onFilterTap;
   final VoidCallback? onNavigationTap;
+  final bool navigationExpanded;
   final VideoLikeCubit? likeCubit;
 
   @override
@@ -513,7 +515,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
     final p = v.property;
     final bottom = MediaQuery.paddingOf(context).bottom;
     final direction = formatPropertyDirection(p.direction);
-    final landType = formatLandType(p.landType);
+    final landType = formatPropertyCategory(p.category);
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxHeight < 720;
@@ -1037,13 +1039,19 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> with RouteAware {
                       width: 44,
                       height: actionHeight,
                       child: IconButton.filled(
-                        tooltip: 'Mở điều hướng',
+                        tooltip: widget.navigationExpanded
+                            ? 'Ẩn thanh điều hướng'
+                            : 'Mở điều hướng',
                         style: IconButton.styleFrom(
                           backgroundColor: AppColors.feedGold,
                           foregroundColor: AppColors.textPrimary,
                         ),
                         onPressed: widget.onNavigationTap,
-                        icon: const Icon(Icons.keyboard_arrow_up_rounded),
+                        icon: Icon(
+                          widget.navigationExpanded
+                              ? Icons.keyboard_arrow_down_rounded
+                              : Icons.keyboard_arrow_up_rounded,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),

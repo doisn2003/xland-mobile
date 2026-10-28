@@ -287,7 +287,7 @@ class _PropertyChoice extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${property.code} · ${property.districtName}, ${property.provinceName}',
+                          '${property.code} · ${property.locationLabel}',
                           style: AppTypography.compact.copyWith(
                             fontSize: 12,
                             color: AppColors.textSecondary,

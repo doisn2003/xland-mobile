@@ -299,7 +299,7 @@ class _SavedPropertiesPageState extends State<SavedPropertiesPage> {
                               Text(prop.title, style: AppTypography.cardTitle),
                               const SizedBox(height: AppSpacing.s4),
                               Text(
-                                '${prop.districtName}, ${prop.provinceName}',
+                                prop.locationLabel,
                                 style: AppTypography.compact.copyWith(color: AppColors.textSecondary),
                               ),
                               const SizedBox(height: AppSpacing.s8),

@@ -126,7 +126,7 @@ class StatusBadge extends StatelessWidget {
               color: foregroundColor,
             ),
             const SizedBox(width: 4),
-            Text(
+            Flexible(child: Text(
               text,
               style: AppTypography.compact.copyWith(
                 color: foregroundColor,
@@ -134,7 +134,7 @@ class StatusBadge extends StatelessWidget {
                 fontSize: 11,
                 height: 1.2,
               ),
-            ),
+            )),
           ],
         ),
       ),

@@ -133,7 +133,7 @@ class PropertySummaryStrip extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${property.districtName}, ${property.provinceName}',
+                  property.locationLabel,
                   style: AppTypography.compact,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

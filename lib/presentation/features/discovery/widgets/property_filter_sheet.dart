@@ -186,15 +186,15 @@ class PropertyFilterSheet extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: _SelectField<String>(
-                              label: 'Khu vực',
+                              label: 'Xã / phường',
                               icon: Icons.map_outlined,
-                              value: draft.districtCode,
+                              value: draft.communeCode,
                               entries: [
                                 const DropdownMenuItem(
                                   value: '',
                                   child: Text('Tất cả'),
                                 ),
-                                ...?state.catalog?.districts.map(
+                                ...?state.catalog?.communes.map(
                                   (d) => DropdownMenuItem(
                                     value: d.code,
                                     child: Text(d.label),
@@ -205,7 +205,7 @@ class PropertyFilterSheet extends StatelessWidget {
                                   state.isLoadingCatalog ||
                                       draft.provinceCode == null
                                   ? null
-                                  : (v) => cubit.setDistrictCode(v),
+                                  : (v) => cubit.setCommuneCode(v),
                             ),
                           ),
                         ],
@@ -245,28 +245,6 @@ class PropertyFilterSheet extends StatelessWidget {
                               label: band.$2,
                               isSelected: draft.areaBands.contains(band.$1),
                               onTap: () => cubit.toggleAreaBand(band.$1),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      const DesignSectionTitle(
-                        'Loại đất',
-                        icon: Icons.layers_outlined,
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          for (final type in [
-                            (LandType.residential, 'Đất ở'),
-                            (LandType.agricultural, 'Đất nông nghiệp'),
-                            (LandType.other, 'Khác'),
-                          ])
-                            _FilterChip(
-                              label: type.$2,
-                              isSelected: draft.landTypes.contains(type.$1),
-                              onTap: () => cubit.toggleLandType(type.$1),
                             ),
                         ],
                       ),

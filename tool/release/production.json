@@ -1,0 +1,4 @@
+{
+  "XLAND_API_BASE_URL": "https://xland-server-production.up.railway.app/api/v1",
+  "XLAND_SHARE_HOST": "xland-server-production.up.railway.app"
+}

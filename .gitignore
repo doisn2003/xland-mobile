@@ -24,3 +24,10 @@ ios/Flutter/flutter_export_environment.sh
 *.keystore
 *.apk
 android/key.properties
+ios/Flutter/GoogleSignIn.xcconfig
+ios/Flutter/ephemeral/
+**/xcuserdata/
+*.ipa
+*.aab
+*.p12
+*.mobileprovision

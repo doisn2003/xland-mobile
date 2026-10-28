@@ -8,6 +8,8 @@ import '../../../shared/widgets/design_widgets.dart';
 import '../../../shared/widgets/illustrative_image.dart';
 import '../../../theme/theme.dart';
 import 'media_gallery_view.dart';
+import 'property_children.dart';
+import '../pages/property_detail_page.dart';
 
 class PropertyOverviewTab extends StatelessWidget {
   const PropertyOverviewTab({
@@ -56,6 +58,18 @@ class PropertyOverviewTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (property.parentPropertyId != null)
+                TextButton.icon(
+                  icon: const Icon(Icons.arrow_upward),
+                  label: const Text('Xem mảnh đất cha'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => PropertyDetailPage(
+                        propertyId: property.parentPropertyId!,
+                      ),
+                    ),
+                  ),
+                ),
               Text(property.title, style: AppTypography.pageHero),
               const SizedBox(height: 4),
               Row(
@@ -68,7 +82,7 @@ class PropertyOverviewTab extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      '${property.code} • ${property.districtName}, ${property.provinceName}',
+                      '${property.code} • ${property.locationLabel}',
                       style: AppTypography.body.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -76,6 +90,21 @@ class PropertyOverviewTab extends StatelessWidget {
                   ),
                 ],
               ),
+              if (property.oldAddress?.trim().isNotEmpty ?? false)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: XLandCard(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Địa chỉ cũ', style: AppTypography.bodyStrong),
+                        const SizedBox(height: 4),
+                        Text(property.oldAddress!, style: AppTypography.body),
+                      ],
+                    ),
+                  ),
+                ),
               const SizedBox(height: 8),
               Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -98,10 +127,25 @@ class PropertyOverviewTab extends StatelessWidget {
                     },
                     variant: StatusBadgeVariant.source,
                   ),
+                  if (property.hasSubplots)
+                    const StatusBadge(
+                      text: 'Nhiều lô đất con',
+                      variant: StatusBadgeVariant.source,
+                    ),
+                  if (property.isCorner)
+                    const StatusBadge(
+                      text: 'Lô góc',
+                      variant: StatusBadgeVariant.source,
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
               _metrics(context),
+              if (property.hasSubplots)
+                PropertyChildren(
+                  key: ValueKey(property.id),
+                  propertyId: property.id,
+                ),
               const SizedBox(height: 12),
               if (property.highlights.isNotEmpty) ...[
                 XLandCard(
@@ -251,7 +295,11 @@ class PropertyOverviewTab extends StatelessWidget {
         'Hướng',
         Icons.explore_outlined,
       ),
-      (formatLandType(property.landType), 'Loại đất', Icons.layers_outlined),
+      (
+        formatPropertyCategory(property.category),
+        'Loại đất',
+        Icons.layers_outlined,
+      ),
     ];
     return Column(
       children: [

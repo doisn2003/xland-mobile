@@ -12,9 +12,11 @@ class PropertyCard extends StatelessWidget {
     required this.property,
     this.onTap,
     this.onBookmarkTap,
+    this.showBookmark = true,
   });
   final Property property;
   final VoidCallback? onTap, onBookmarkTap;
+  final bool showBookmark;
   @override
   Widget build(BuildContext context) {
     final media = property.media.isEmpty ? null : property.media.first;
@@ -45,24 +47,25 @@ class PropertyCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: IconButton(
-                  tooltip: property.isSaved ? 'Bỏ lưu lô đất' : 'Lưu lô đất',
-                  onPressed: onBookmarkTap,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.black38,
-                    foregroundColor: Colors.white,
-                  ),
-                  icon: Icon(
-                    property.isSaved
-                        ? Icons.bookmark_rounded
-                        : Icons.bookmark_border_rounded,
-                    size: 23,
+              if (showBookmark)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: IconButton(
+                    tooltip: property.isSaved ? 'Bỏ lưu lô đất' : 'Lưu lô đất',
+                    onPressed: onBookmarkTap,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black38,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: Icon(
+                      property.isSaved
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_border_rounded,
+                      size: 23,
+                    ),
                   ),
                 ),
-              ),
               if (media?.kind == MediaKind.video)
                 Positioned(
                   left: 6,
@@ -91,6 +94,12 @@ class PropertyCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (property.hasSubplots)
+                  const StatusBadge(
+                    text: 'Nhiều lô đất con',
+                    variant: StatusBadgeVariant.source,
+                  ),
+                if (property.isCorner) const Text('Lô góc'),
                 Text(
                   property.title,
                   style: AppTypography.bodyStrong,

@@ -68,3 +68,10 @@ String formatUpdatedAt(DateTime updatedAt, {DateTime? now}) {
   if (elapsed.inHours < 24) return '${elapsed.inHours} giờ trước';
   return '${elapsed.inDays} ngày trước';
 }
+
+String formatPropertyCategory(PropertyCategory type) => switch (type) {
+  PropertyCategory.residential => 'Đất ở',
+  PropertyCategory.agricultural => 'Đất nông nghiệp',
+  PropertyCategory.industrial => 'Đất công nghiệp',
+  PropertyCategory.other => 'Khác',
+};

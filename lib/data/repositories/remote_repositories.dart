@@ -116,6 +116,7 @@ Map<String, String> propertyFilters(PropertyFilter filter) => {
     'category': writePropertyCategory(filter.category!),
   if (filter.provinceCode != null) 'provinceCode': filter.provinceCode!,
   if (filter.districtCode != null) 'districtCode': filter.districtCode!,
+  if (filter.communeCode != null) 'communeCode': filter.communeCode!,
   if (filter.minPriceVnd != null) 'minPriceVnd': filter.minPriceVnd!.wireValue,
   if (filter.maxPriceVnd != null) 'maxPriceVnd': filter.maxPriceVnd!.wireValue,
   if (filter.areaBands.isNotEmpty)
@@ -180,6 +181,14 @@ final class RemotePropertyRepository implements PropertyRepository {
   Future<Property> getProperty(String propertyId) =>
       gateway.request('D04', 'GET', '/properties/$propertyId', mapProperty);
   @override
+  Future<Page<Property>> getChildren(String propertyId, PageQuery page) =>
+      gateway.page(
+        'D08',
+        '/properties/$propertyId/children',
+        page,
+        mapProperty,
+      );
+  @override
   Future<LegalSummary> getLegal(String propertyId) => gateway.request(
     'L01',
     'GET',
@@ -222,17 +231,25 @@ final class RemotePropertyRepository implements PropertyRepository {
   );
 }
 
-final class RemoteAccountRepository implements AccountRepository,AccountSessionEvents {
-  RemoteAccountRepository(this.gateway, this.sessions, {AuthOperationCoordinator? authCoordinator})
-    : authCoordinator = authCoordinator ?? AuthOperationCoordinator();
+final class RemoteAccountRepository
+    implements AccountRepository, AccountSessionEvents {
+  RemoteAccountRepository(
+    this.gateway,
+    this.sessions, {
+    AuthOperationCoordinator? authCoordinator,
+  }) : authCoordinator = authCoordinator ?? AuthOperationCoordinator();
   final AuthOperationCoordinator authCoordinator;
   final RemoteGateway gateway;
   final SessionStore sessions;
-  @override Stream<void> get sessionInvalidations=>switch(sessions) {
-    SessionInvalidationSource source=>source.sessionInvalidations,
-    _=>const Stream<void>.empty(),
+  @override
+  Stream<void> get sessionInvalidations => switch (sessions) {
+    SessionInvalidationSource source => source.sessionInvalidations,
+    _ => const Stream<void>.empty(),
   };
-  Future<T> _authOperation<T>(Future<T> Function(AuthAttempt) action, {bool cancellable = true}) => authCoordinator.run(action, cancellable: cancellable);
+  Future<T> _authOperation<T>(
+    Future<T> Function(AuthAttempt) action, {
+    bool cancellable = true,
+  }) => authCoordinator.run(action, cancellable: cancellable);
   @override
   Future<Session?> getSession() async {
     if (await sessions.readAccessToken() == null) return null;
@@ -258,7 +275,9 @@ final class RemoteAccountRepository implements AccountRepository,AccountSessionE
     }, body: {'username': input.username, 'password': input.password});
     attempt.check();
     await sessions.saveAccessToken(accessToken: result.token);
-    try { attempt.check(); } on XlandFailure {
+    try {
+      attempt.check();
+    } on XlandFailure {
       await sessions.clearIfMatches(accessToken: result.token);
       rethrow;
     }
@@ -279,7 +298,9 @@ final class RemoteAccountRepository implements AccountRepository,AccountSessionE
     }, body: {'username': input.username, 'password': input.password});
     attempt.check();
     await sessions.saveAccessToken(accessToken: result.token);
-    try { attempt.check(); } on XlandFailure {
+    try {
+      attempt.check();
+    } on XlandFailure {
       await sessions.clearIfMatches(accessToken: result.token);
       rethrow;
     }
@@ -288,7 +309,7 @@ final class RemoteAccountRepository implements AccountRepository,AccountSessionE
 
   @override
   Future<void> signOut() => _authOperation((_) async {
-    final token=await sessions.readAccessToken();
+    final token = await sessions.readAccessToken();
     try {
       await gateway.request(
         'U03',
@@ -297,7 +318,7 @@ final class RemoteAccountRepository implements AccountRepository,AccountSessionE
         (_) => null,
       );
     } finally {
-      if(token!=null) await sessions.clearIfMatches(accessToken:token);
+      if (token != null) await sessions.clearIfMatches(accessToken: token);
     }
   }, cancellable: false);
 

@@ -86,7 +86,7 @@ void main() {
       expect(find.text('Xem thực địa'), findsNothing);
     });
 
-    testWidgets('XLandApp opens gallery from Tab 0 top action and back button returns to Tab 0', (tester) async {
+    testWidgets('feed arrow reveals the existing navbar without a tab picker popup', (tester) async {
       final dependencies = createFakeDependencies();
 
       await tester.pumpWidget(
@@ -99,21 +99,20 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Mở điều hướng'));
       await tester.pumpAndSettle();
-      expect(find.text('Gallery'), findsOneWidget);
-      await tester.tap(find.text('Gallery'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-
-      expect(find.byType(ComponentGalleryPage), findsOneWidget);
-
-      // Tap back button
-      await tester.tap(find.byTooltip('Quay lại'));
+      expect(find.text('Gallery'), findsNothing);
+      expect(find.byType(ComponentGalleryPage), findsNothing);
+      expect(find.text('Trang chủ'), findsOneWidget);
+      expect(find.text('Khám phá'), findsOneWidget);
+      expect(find.text('Sự kiện'), findsOneWidget);
+      expect(find.text('Tôi'), findsOneWidget);
+      await tester.tap(find.byTooltip('Ẩn thanh điều hướng'));
       await tester.pumpAndSettle();
 
-      // Returns to Tab 0
+      // The feed stays on the same route and becomes full height again.
       expect(find.byType(ComponentGalleryPage), findsNothing);
       expect(find.byType(MainNavigationShell), findsOneWidget);
       expect(find.text('Xem thực địa'), findsOneWidget);
+      expect(find.text('Khám phá'), findsNothing);
     });
   });
 }

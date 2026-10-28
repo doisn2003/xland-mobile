@@ -2,12 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>Chọn ảnh đại diện cho hồ sơ XLand của bạn.</string>
 	<key>FlutterDeepLinkingEnabled</key>
 	<true/>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<true/>
 	<key>CFBundleURLTypes</key>
 	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array><string>$(GOOGLE_REVERSED_CLIENT_ID)</string></array>
+		</dict>
 		<dict>
 			<key>CFBundleURLName</key>
 			<string>vn.xland.share</string>

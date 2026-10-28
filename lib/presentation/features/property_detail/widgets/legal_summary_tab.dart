@@ -172,14 +172,6 @@ class LegalSummaryTab extends StatelessWidget {
                                       color: AppColors.brandPrimary,
                                     ),
                                   )
-                                else
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 8),
-                                    child: Text(
-                                      'Chờ bổ sung',
-                                      style: AppTypography.compact,
-                                    ),
-                                  ),
                               ],
                             ),
                           ),

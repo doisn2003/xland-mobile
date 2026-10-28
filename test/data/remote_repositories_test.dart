@@ -24,9 +24,10 @@ class _SessionStore implements SessionStore {
   Future<void> clear() async {
     token = null;
   }
+
   @override
   Future<void> clearIfMatches({required String accessToken}) async {
-    if(token==accessToken) token=null;
+    if (token == accessToken) token = null;
   }
 }
 
@@ -54,6 +55,45 @@ void main() {
     savedOnly: false,
     sort: PropertySort.priceAsc,
   );
+  test('child plots use their own endpoint, opaque cursor and complete property mapper', () async {
+    final repo = RemotePropertyRepository(
+      RemoteGateway(
+        transport(
+          MockClient((request) async {
+            expect(request.url.path, '/api/v1/properties/parent/children');
+            expect(request.url.queryParameters, {
+              'limit': '4',
+              'cursor': 'opaque-next',
+            });
+            return http.Response(
+              jsonEncode({
+                'data': [
+                  {
+                    ...wireObject(samples['Property']),
+                    'parentPropertyId': 'parent',
+                    'hasSubplots': true,
+                    'isCorner': true,
+                  },
+                ],
+                'meta': {'total': 5, 'hasMore': false, 'nextCursor': null},
+              }),
+              200,
+              headers: {'content-type':'application/json; charset=utf-8'},
+            );
+          }),
+          _SessionStore(),
+        ),
+        availableOperations: {'D08'},
+      ),
+    );
+    final result = await repo.getChildren(
+      'parent',
+      const PageQuery(limit: 4, cursor: 'opaque-next'),
+    );
+    expect(result.total, 5);
+    expect(result.items.single.parentPropertyId, 'parent');
+    expect(result.items.single.isCorner, true);
+  });
 
   test(
     'wire mapper keeps exact VND and null media; unknown enums are rejected',
@@ -145,28 +185,39 @@ void main() {
     expect(store.token, isNull);
     client.close();
   });
-  test('a pending logout cannot erase a later login token',() async {
-    final store=_SessionStore()..token='A'*43;
-    final logoutResponse=Completer<http.Response>();
-    var logins=0;
-    final client=MockClient((req) async {
-      if(req.method=='DELETE') {
-        expect(req.headers['authorization'],'Bearer ${'A'*43}');
+  test('a pending logout cannot erase a later login token', () async {
+    final store = _SessionStore()..token = 'A' * 43;
+    final logoutResponse = Completer<http.Response>();
+    var logins = 0;
+    final client = MockClient((req) async {
+      if (req.method == 'DELETE') {
+        expect(req.headers['authorization'], 'Bearer ${'A' * 43}');
         return logoutResponse.future;
       }
       logins++;
-      return http.Response(jsonEncode({'data':{'accessToken':'B'*43,'session':samples['Session']}}),200);
+      return http.Response(
+        jsonEncode({
+          'data': {'accessToken': 'B' * 43, 'session': samples['Session']},
+        }),
+        200,
+      );
     });
     addTearDown(client.close);
-    final repo=RemoteAccountRepository(RemoteGateway(transport(client,store)),store);
-    final logout=repo.signOut();
-    final login=repo.signIn(const SignInInput(username:'owner_b',password:'review_password'));
+    final repo = RemoteAccountRepository(
+      RemoteGateway(transport(client, store)),
+      store,
+    );
+    final logout = repo.signOut();
+    final login = repo.signIn(
+      const SignInInput(username: 'owner_b', password: 'review_password'),
+    );
     await Future<void>.delayed(Duration.zero);
-    expect(logins,0);
-    logoutResponse.complete(http.Response('{"data":null}',200));
-    await logout;await login;
-    expect(store.token,'B'*43);
-    expect(logins,1);
+    expect(logins, 0);
+    logoutResponse.complete(http.Response('{"data":null}', 200));
+    await logout;
+    await login;
+    expect(store.token, 'B' * 43);
+    expect(logins, 1);
   });
   test('401 clears local session and getSession becomes null while other calls fail', () async {
     final store = _SessionStore()..token = 'B' * 43;
@@ -375,6 +426,61 @@ void main() {
       client.close();
     },
   );
+  test('profile sends avatar bytes and optional address in one request and maps new and legacy responses', () async {
+    final bytes = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jS1cAAAAASUVORK5CYII=',
+    );
+    final bodies = <Map<String, Object?>>[];
+    final client = MockClient((request) async {
+      bodies.add(wireObject(jsonDecode(request.body)));
+      return http.Response(
+        jsonEncode({
+          'data': {
+            ...wireObject(wireObject(samples['Session'])['profile']),
+            'displayName': '',
+            'address': bodies.last['address'],
+          },
+        }),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+    });
+    final repo = RemoteAccountRepository(
+      RemoteGateway(transport(client, _SessionStore())),
+      _SessionStore(),
+    );
+    final saved = await repo.updateProfile(
+      ProfileUpdate(
+        displayName: '',
+        address: 'Địa chỉ mới',
+        avatar: AvatarUpload(bytes: bytes, mimeType: 'image/png'),
+      ),
+    );
+    expect(saved.displayName, '');
+    expect(saved.address, 'Địa chỉ mới');
+    expect(bodies.single, {
+      'displayName': '',
+      'address': 'Địa chỉ mới',
+      'avatar': {'mimeType': 'image/png', 'bytesBase64': base64Encode(bytes)},
+    });
+    expect(
+      (await repo.updateProfile(const ProfileUpdate(clearAddress: true)))
+          .address,
+      isNull,
+    );
+    expect(bodies.last, {'address': null});
+    expect(
+      mapUserProfile(wireObject(samples['Session'])['profile']).address,
+      isNull,
+    );
+    await expectLater(
+      repo.updateProfile(
+        const ProfileUpdate(address: 'Mới', clearAddress: true),
+      ),
+      throwsA(failure(FailureCode.invalidInput)),
+    );
+    client.close();
+  });
   test('C-4 clear plus value conflicts fail before HTTP, independent of assertions', () async {
     var calls = 0;
     final client = MockClient((_) async {

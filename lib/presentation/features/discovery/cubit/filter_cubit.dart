@@ -134,6 +134,7 @@ class FilterCubit extends Cubit<FilterState> {
       category: state.draftFilter.category,
       provinceCode: state.draftFilter.provinceCode,
       districtCode: state.draftFilter.districtCode,
+      communeCode: state.draftFilter.communeCode,
       minPriceVnd: state.draftFilter.minPriceVnd,
       maxPriceVnd: state.draftFilter.maxPriceVnd,
       areaBands: state.draftFilter.areaBands,
@@ -155,10 +156,11 @@ class FilterCubit extends Cubit<FilterState> {
       category: state.draftFilter.category == category ? null : category,
       provinceCode: state.draftFilter.provinceCode,
       districtCode: state.draftFilter.districtCode,
+      communeCode: state.draftFilter.communeCode,
       minPriceVnd: state.draftFilter.minPriceVnd,
       maxPriceVnd: state.draftFilter.maxPriceVnd,
       areaBands: state.draftFilter.areaBands,
-      landTypes: state.draftFilter.landTypes,
+      landTypes: const [],
       minRoadWidthM: state.draftFilter.minRoadWidthM,
       hasDocuments: state.draftFilter.hasDocuments,
       savedOnly: state.draftFilter.savedOnly,
@@ -222,6 +224,32 @@ class FilterCubit extends Cubit<FilterState> {
     _scheduleCount();
   }
 
+  void setCommuneCode(String? communeCode) {
+    final cleanCommune = communeCode?.trim().isEmpty ?? true
+        ? null
+        : communeCode?.trim();
+    if (cleanCommune == state.draftFilter.communeCode) return;
+
+    final newFilter = PropertyFilter(
+      query: state.draftFilter.query,
+      regions: state.draftFilter.regions,
+      category: state.draftFilter.category,
+      provinceCode: state.draftFilter.provinceCode,
+      communeCode: cleanCommune,
+      minPriceVnd: state.draftFilter.minPriceVnd,
+      maxPriceVnd: state.draftFilter.maxPriceVnd,
+      areaBands: state.draftFilter.areaBands,
+      landTypes: state.draftFilter.landTypes,
+      minRoadWidthM: state.draftFilter.minRoadWidthM,
+      hasDocuments: state.draftFilter.hasDocuments,
+      savedOnly: state.draftFilter.savedOnly,
+      sort: state.draftFilter.sort,
+    );
+
+    emit(state.copyWith(draftFilter: newFilter));
+    _scheduleCount();
+  }
+
   void setPriceRange(Vnd? min, Vnd? max) {
     final newFilter = PropertyFilter(
       query: state.draftFilter.query,
@@ -229,6 +257,7 @@ class FilterCubit extends Cubit<FilterState> {
       category: state.draftFilter.category,
       provinceCode: state.draftFilter.provinceCode,
       districtCode: state.draftFilter.districtCode,
+      communeCode: state.draftFilter.communeCode,
       minPriceVnd: min,
       maxPriceVnd: max,
       areaBands: state.draftFilter.areaBands,
@@ -261,6 +290,7 @@ class FilterCubit extends Cubit<FilterState> {
       category: state.draftFilter.category,
       provinceCode: state.draftFilter.provinceCode,
       districtCode: state.draftFilter.districtCode,
+      communeCode: state.draftFilter.communeCode,
       minPriceVnd: state.draftFilter.minPriceVnd,
       maxPriceVnd: state.draftFilter.maxPriceVnd,
       areaBands: currentBands,
@@ -289,6 +319,7 @@ class FilterCubit extends Cubit<FilterState> {
       category: state.draftFilter.category,
       provinceCode: state.draftFilter.provinceCode,
       districtCode: state.draftFilter.districtCode,
+      communeCode: state.draftFilter.communeCode,
       minPriceVnd: state.draftFilter.minPriceVnd,
       maxPriceVnd: state.draftFilter.maxPriceVnd,
       areaBands: state.draftFilter.areaBands,
@@ -310,6 +341,7 @@ class FilterCubit extends Cubit<FilterState> {
       category: state.draftFilter.category,
       provinceCode: state.draftFilter.provinceCode,
       districtCode: state.draftFilter.districtCode,
+      communeCode: state.draftFilter.communeCode,
       minPriceVnd: state.draftFilter.minPriceVnd,
       maxPriceVnd: state.draftFilter.maxPriceVnd,
       areaBands: state.draftFilter.areaBands,
@@ -331,6 +363,7 @@ class FilterCubit extends Cubit<FilterState> {
       category: state.draftFilter.category,
       provinceCode: state.draftFilter.provinceCode,
       districtCode: state.draftFilter.districtCode,
+      communeCode: state.draftFilter.communeCode,
       minPriceVnd: state.draftFilter.minPriceVnd,
       maxPriceVnd: state.draftFilter.maxPriceVnd,
       areaBands: state.draftFilter.areaBands,
@@ -354,8 +387,14 @@ class FilterCubit extends Cubit<FilterState> {
       sort: PropertySort.relevant,
     );
 
-    emit(state.copyWith(draftFilter: defaultFilter, selectedCriteriaCount: 0,
-      isPriceValid: true, resetGeneration: state.resetGeneration + 1));
+    emit(
+      state.copyWith(
+        draftFilter: defaultFilter,
+        selectedCriteriaCount: 0,
+        isPriceValid: true,
+        resetGeneration: state.resetGeneration + 1,
+      ),
+    );
     loadCatalog();
     _scheduleCount();
   }

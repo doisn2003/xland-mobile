@@ -92,7 +92,7 @@ void main() {
         // Check documents section
         expect(find.text('Tài liệu được chia sẻ'), findsOneWidget);
         expect(find.text('Bản chụp giấy tờ'), findsOneWidget);
-        expect(find.text('Chờ bổ sung'), findsWidgets);
+        expect(find.text('Cần bổ sung'), findsWidgets);
       },
     );
 
